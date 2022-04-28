@@ -1,3 +1,5 @@
+package cmd
+
 /*
 Copyright © 2022 Paulson McIntyre <paulson@fragforce.org>
 
@@ -14,24 +16,42 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
-package cmd
 
 import (
 	"fmt"
-	"github.com/spf13/cobra"
-	"os"
-
 	homedir "github.com/mitchellh/go-homedir"
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"os"
 )
 
 var cfgFile string
+var rootLog *logrus.Logger
+var log *logrus.Entry
+var AmDebugging bool
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "fragevents",
 	Short: "A web app for donation events and info",
 	Long:  `See fragforce.org & https://github.com/fragforce/fragevents `,
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		log := log.WithFields(logrus.Fields{
+			"args": args,
+		})
+		if log != nil {
+			log.Debug("Starting up")
+		}
+	},
+	PersistentPostRun: func(cmd *cobra.Command, args []string) {
+		log := log.WithFields(logrus.Fields{
+			"args": args,
+		})
+		if log != nil {
+			log.Debug("All done")
+		}
+	},
 }
 
 func Execute() {
@@ -39,13 +59,9 @@ func Execute() {
 }
 
 func init() {
-	cobra.OnInitialize(initConfig)
-
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
-
+	cobra.OnInitialize(initConfig, initLogging)
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.fragevents.yaml)")
+	rootCmd.PersistentFlags().BoolVarP(&AmDebugging, "debug", "d", false, "Enable debug mode")
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -63,10 +79,39 @@ func initConfig() {
 		viper.SetConfigName(".fragevents")
 	}
 
-	viper.AutomaticEnv() // read in environment variables that match
+	viper.SetEnvPrefix("CFG_")
+	viper.AutomaticEnv() // read in environment variables that match CFG_XXXXXXX
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
 		fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
 	}
+
+	// Update debug mode from config
+	if !AmDebugging && viper.GetBool("debug") {
+		AmDebugging = true
+	}
+}
+
+func initLogging() {
+	rootLog = logrus.New()
+	lvl, err := logrus.ParseLevel(viper.GetString("log.level"))
+	if err != nil {
+		panic("Bad log level: " + err.Error())
+	}
+	rootLog.SetLevel(lvl)
+	rootLog.SetFormatter(&logrus.JSONFormatter{
+		DisableTimestamp:  false,
+		DisableHTMLEscape: false,
+	})
+	rootLog.SetReportCaller(true)
+	log = rootLog.WithFields(logrus.Fields{
+		"app": rootCmd.Name(),
+	})
+
+	if AmDebugging {
+		rootLog.SetLevel(logrus.DebugLevel)
+	}
+
+	log.Info("Init'ed logging")
 }
