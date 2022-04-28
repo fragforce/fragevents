@@ -66,7 +66,7 @@ var workerCmd = &cobra.Command{
 		mux.HandleFunc(tasks.TaskExtraLifeUpdate, tasks.HandleExtraLifeUpdateTask)
 
 		if err := srv.Run(mux); err != nil {
-			log.Fatal(err)
+			log.WithError(err).Fatal("Problem running asynq worker daemon")
 		}
 	},
 }

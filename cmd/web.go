@@ -18,8 +18,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import (
-	"fmt"
-
+	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
 )
 
@@ -28,7 +27,17 @@ var webCmd = &cobra.Command{
 	Use:   "web",
 	Short: "Web frontend worker",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("web called")
+		r := gin.Default()
+		r.GET("/alive", func(c *gin.Context) {
+			c.JSON(200, gin.H{
+				"alive": true,
+				"ok":    true,
+				"error": nil,
+			})
+		})
+		if err := r.Run(); err != nil {
+			log.WithError(err).Fatal("Problem running GIN")
+		}
 	},
 }
 
