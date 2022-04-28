@@ -33,30 +33,8 @@ var workerCmd = &cobra.Command{
 	Use:   "worker",
 	Short: "Backend workers",
 	Run: func(cmd *cobra.Command, args []string) {
-		rawURL := os.Getenv("REDIS_URL")
-		parsedRedisURL, err := url.Parse(rawURL)
-		if err != nil {
-			log.WithError(err).WithField("url", rawURL).Fatal("Failed to parse Redis URL")
-			return // Just in case
-		}
-		passwd, ok := parsedRedisURL.User.Password()
-		if !ok {
-			log.WithField("url", rawURL).Warn("No redis password")
-		}
-
 		srv := asynq.NewServer(
-			asynq.RedisClientOpt{
-				Addr:         parsedRedisURL.Host,
-				Password:     passwd,
-				DB:           viper.GetInt("asynq.rdb"),
-				DialTimeout:  viper.GetDuration("redis.dialtimeout"),
-				ReadTimeout:  viper.GetDuration("redis.readtimeout"),
-				WriteTimeout: viper.GetDuration("redis.writetimeout"),
-				PoolSize:     viper.GetInt("redis.poolsize"),
-				TLSConfig: &tls.Config{
-					InsecureSkipVerify: true,
-				},
-			},
+			buildRedisConn(),
 			asynq.Config{
 				Concurrency: viper.GetInt("asynq.workers"),
 			},
@@ -80,4 +58,30 @@ func init() {
 	viper.SetDefault("redis.writetimeout", time.Second*15)
 	viper.SetDefault("redis.poolsize", 120)
 	viper.SetDefault("asynq.workers", 32)
+}
+
+func buildRedisConn() asynq.RedisClientOpt {
+	rawURL := os.Getenv("REDIS_URL")
+	parsedRedisURL, err := url.Parse(rawURL)
+	if err != nil {
+		log.WithError(err).WithField("url", rawURL).Fatal("Failed to parse Redis URL")
+	}
+
+	passwd, ok := parsedRedisURL.User.Password()
+	if !ok {
+		log.WithField("url", rawURL).Warn("No redis password")
+	}
+
+	return asynq.RedisClientOpt{
+		Addr:         parsedRedisURL.Host,
+		Password:     passwd,
+		DB:           viper.GetInt("asynq.rdb"),
+		DialTimeout:  viper.GetDuration("redis.dialtimeout"),
+		ReadTimeout:  viper.GetDuration("redis.readtimeout"),
+		WriteTimeout: viper.GetDuration("redis.writetimeout"),
+		PoolSize:     viper.GetInt("redis.poolsize"),
+		TLSConfig: &tls.Config{
+			InsecureSkipVerify: true,
+		},
+	}
 }
