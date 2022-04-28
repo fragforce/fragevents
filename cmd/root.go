@@ -79,7 +79,7 @@ func initConfig() {
 		viper.SetConfigName(".fragevents")
 	}
 
-	viper.SetEnvPrefix("CFG_")
+	viper.SetEnvPrefix("cfg")
 	viper.AutomaticEnv() // read in environment variables that match CFG_XXXXXXX
 
 	// If a config file is found, read it in.
@@ -90,6 +90,11 @@ func initConfig() {
 	// Update debug mode from config
 	if !AmDebugging && viper.GetBool("debug") {
 		AmDebugging = true
+	}
+
+	// Save PORT env
+	if p := os.Getenv("PORT"); p != "" {
+		viper.Set("port", p)
 	}
 }
 
