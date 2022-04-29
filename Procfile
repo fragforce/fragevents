@@ -1,3 +1,3 @@
-web: main web
-release: main release
-worker: main worker
+web: fragevents web
+release: fragevents release
+worker: fragevents worker
