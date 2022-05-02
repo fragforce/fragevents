@@ -31,6 +31,12 @@ var webCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		r := gin.Default()
 
+		if !AmDebugging {
+			gin.SetMode(gin.ReleaseMode)
+		} else {
+			gin.SetMode(gin.DebugMode)
+		}
+
 		// Add handlers
 		handlers.RegisterHandlers(r)
 
