@@ -11,5 +11,4 @@ func RegisterHandlers(r *gin.Engine) {
 			"error": nil,
 		})
 	})
-
 }
