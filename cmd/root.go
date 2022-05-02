@@ -59,6 +59,7 @@ func Execute() {
 }
 
 func init() {
+	//viper.SetDefault("log.level",logrus.DebugLevel)
 	cobra.OnInitialize(initConfig, initLogging)
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.fragevents.yaml)")
 	rootCmd.PersistentFlags().BoolVarP(&AmDebugging, "debug", "d", false, "Enable debug mode")
@@ -79,7 +80,7 @@ func initConfig() {
 		viper.SetConfigName(".fragevents")
 	}
 
-	viper.SetEnvPrefix("CFG_")
+	viper.SetEnvPrefix("CFG")
 	viper.AutomaticEnv() // read in environment variables that match CFG_XXXXXXX
 
 	// If a config file is found, read it in.
