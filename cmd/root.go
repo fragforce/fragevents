@@ -80,7 +80,7 @@ func initConfig() {
 		viper.SetConfigName(".fragevents")
 	}
 
-	viper.SetEnvPrefix("CFG")
+	viper.SetEnvPrefix("CFG_")
 	viper.AutomaticEnv() // read in environment variables that match CFG_XXXXXXX
 
 	// If a config file is found, read it in.
