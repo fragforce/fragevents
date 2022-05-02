@@ -60,7 +60,7 @@ func Execute() {
 
 func init() {
 	//viper.SetDefault("log.level",logrus.DebugLevel)
-	cobra.OnInitialize(initConfig, initLogging)
+	cobra.OnInitialize(initConfig)
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.fragevents.yaml)")
 	rootCmd.PersistentFlags().BoolVarP(&AmDebugging, "debug", "d", false, "Enable debug mode")
 }
@@ -97,9 +97,7 @@ func initConfig() {
 	if p := os.Getenv("PORT"); p != "" {
 		viper.Set("port", p)
 	}
-}
 
-func initLogging() {
 	rootLog = logrus.New()
 	lvl, err := logrus.ParseLevel(viper.GetString("log.level"))
 	if err != nil {
