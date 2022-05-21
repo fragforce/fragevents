@@ -27,6 +27,7 @@ func GetTeam(c *gin.Context) {
 		})
 	}
 
+	log.Trace("Setting up gca")
 	gca := gcache.GlobalCache()
 	teamCache, err := gca.GetGroupByName(gcache.GroupELTeam)
 	if err != nil {
@@ -34,6 +35,7 @@ func GetTeam(c *gin.Context) {
 		return
 	}
 
+	log.Trace("Kicking off cache get/fill")
 	var data []byte
 	ctx, _ := context.WithTimeout(c, time.Second*20)
 	if err := teamCache.Get(ctx, teamID, groupcache.AllocatingByteSliceSink(&data)); err != nil {
@@ -41,13 +43,16 @@ func GetTeam(c *gin.Context) {
 		return
 	}
 
+	log.Trace("Unmarshaling")
 	// While we could get away without this, let's be sure the schema is right - security :)
 	team := donordrive.Team{}
 	if err := json.Unmarshal(data, &team); err != nil {
 		fErr(err, "Couldn't unmarshal team")
 		return
 	}
+	log = log.WithField("team.name", team.Name)
 
+	log.Trace("All done")
 	c.JSON(200, gin.H{
 		"ok":      true,
 		"error":   nil,
