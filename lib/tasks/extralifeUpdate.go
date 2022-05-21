@@ -12,10 +12,10 @@ const (
 )
 
 type ExtraLifeUpdate struct {
-	TeamID int64
+	TeamID int
 }
 
-func NewExtraLifeUpdateTask(teamId int64) (*asynq.Task, error) {
+func NewExtraLifeUpdateTask(teamId int) (*asynq.Task, error) {
 	payload, err := json.Marshal(ExtraLifeUpdate{TeamID: teamId})
 	if err != nil {
 		return nil, err

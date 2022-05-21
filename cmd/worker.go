@@ -20,6 +20,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 import (
 	"crypto/tls"
 	"github.com/fragforce/fragevents/lib/tasks"
+	"github.com/go-redis/redis/v8"
 	"github.com/hibiken/asynq"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -58,19 +59,31 @@ func init() {
 	viper.SetDefault("redis.writetimeout", time.Second*15)
 	viper.SetDefault("redis.poolsize", 120)
 	viper.SetDefault("asynq.workers", 32)
+	viper.SetDefault("groupcache.rdb", 2)
 }
 
-func buildRedisConn() asynq.RedisClientOpt {
+//parseRedisURL returns a parsed copy of the redis url. WARN: Does a FATAL on failure to parse.
+func parseRedisURL() *url.URL {
+	log := log
 	rawURL := os.Getenv("REDIS_URL")
+	log = log.WithField("url", rawURL)
+
 	parsedRedisURL, err := url.Parse(rawURL)
 	if err != nil {
 		log.WithError(err).WithField("url", rawURL).Fatal("Failed to parse Redis URL")
 	}
 
-	passwd, ok := parsedRedisURL.User.Password()
+	_, ok := parsedRedisURL.User.Password()
 	if !ok {
-		log.WithField("url", rawURL).Warn("No redis password")
+		log.Warn("No redis password")
 	}
+
+	return parsedRedisURL
+}
+
+func buildRedisConn() asynq.RedisClientOpt {
+	parsedRedisURL := parseRedisURL()
+	passwd, _ := parsedRedisURL.User.Password()
 
 	return asynq.RedisClientOpt{
 		Addr:         parsedRedisURL.Host,
@@ -84,4 +97,17 @@ func buildRedisConn() asynq.RedisClientOpt {
 			InsecureSkipVerify: true,
 		},
 	}
+}
+
+func getRedisClient() *redis.Client {
+	parsedRedisURL := parseRedisURL()
+	passwd, _ := parsedRedisURL.User.Password()
+
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     parsedRedisURL.Host,
+		Password: passwd,
+		DB:       viper.GetInt("groupcache.rdb"),
+	})
+
+	return rdb
 }
