@@ -1,4 +1,4 @@
-package whandlers
+package handlers
 
 import (
 	"encoding/json"

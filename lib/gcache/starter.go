@@ -3,7 +3,7 @@ package gcache
 import (
 	"context"
 	"fmt"
-	"github.com/fragforce/fragevents/lib/handlers"
+	"github.com/fragforce/fragevents/lib/handler_reg"
 	"github.com/fragforce/fragevents/lib/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/mailgun/groupcache/v2"
@@ -150,7 +150,7 @@ func (c *SharedGCache) StartRun(r *gin.Engine) error {
 
 	// Add handlers
 	r.Any("/_groupcache/", c.GroupCacheHandler)
-	handlers.RegisterGlobalHandlers(r) // Globals only - not web ones too
+	handler_reg.RegisterGlobalHandlers(r) // Globals only - not web ones too
 
 	go func() {
 		// TODO: Allow caller to decide if they want to start or not

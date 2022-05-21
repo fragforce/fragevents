@@ -18,7 +18,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import (
-	"github.com/fragforce/fragevents/lib/handlers"
+	"github.com/fragforce/fragevents/lib/handler_reg"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -38,7 +38,7 @@ var webCmd = &cobra.Command{
 		}
 
 		// Add handlers
-		handlers.RegisterHandlers(r)
+		handler_reg.RegisterHandlers(r)
 
 		if err := r.Run(viper.GetString("listen") + ":" + viper.GetString("port")); err != nil {
 			log.WithError(err).Fatal("Problem running GIN")
