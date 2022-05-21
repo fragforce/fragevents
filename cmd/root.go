@@ -195,6 +195,10 @@ func initLogging() {
 	}
 
 	for k, v := range viper.GetStringMapString("runtime") {
+		if strings.Contains(strings.ToLower(k), "cert") || strings.Contains(strings.ToLower(v), "certificate") {
+			// has cert data
+			continue
+		}
 		log = log.WithField(k, v)
 	}
 
