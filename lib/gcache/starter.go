@@ -154,7 +154,7 @@ func (c *SharedGCache) StartRun(r *gin.Engine) error {
 
 	go func() {
 		// TODO: Allow caller to decide if they want to start or not
-		if err := r.Run(c.myURI); err != nil {
+		if err := r.Run(fmt.Sprintf("0.0.0.0:%d:", c.myPort)); err != nil {
 			log.WithError(err).Fatal("Problem running GIN")
 		}
 	}()
