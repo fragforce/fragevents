@@ -90,13 +90,15 @@ func (c *SharedGCache) createPool() error {
 
 func (c *SharedGCache) fetchPeers() ([]string, error) {
 	log := c.log.WithFields(logrus.Fields{
-		"peers.key": viper.GetString("groupcache.peers.key"),
+		"peers.key":    viper.GetString("groupcache.peers.key"),
+		"peers.my.uri": c.myURI,
 	})
 	res, err := c.rClient.SMembers(context.Background(), viper.GetString("groupcache.peers.key")).Result()
 	if err != nil {
 		log.WithError(err).Error("Problem fetching the groupcache peer list")
 		return res, err
 	}
+	log = log.WithField("peers", res)
 	log.Trace("Fetched the groupcache peer list")
 	return res, nil
 }
@@ -104,7 +106,8 @@ func (c *SharedGCache) fetchPeers() ([]string, error) {
 //removeMyPeer removes ourselves from the redis based peer list
 func (c *SharedGCache) removeMyPeer() error {
 	log := c.log.WithFields(logrus.Fields{
-		"peers.key": viper.GetString("groupcache.peers.key"),
+		"peers.key":    viper.GetString("groupcache.peers.key"),
+		"peers.my.uri": c.myURI,
 	})
 	if _, err := c.rClient.SRem(context.Background(), viper.GetString("groupcache.peers.key"), c.myURI).Result(); err != nil {
 		log.WithError(err).Error("Problem removing ourself from the groupcache peer list")
@@ -117,7 +120,8 @@ func (c *SharedGCache) removeMyPeer() error {
 //addMyPeer adds ourselves to the redis based peer list
 func (c *SharedGCache) addMyPeer() error {
 	log := c.log.WithFields(logrus.Fields{
-		"peers.key": viper.GetString("groupcache.peers.key"),
+		"peers.key":    viper.GetString("groupcache.peers.key"),
+		"peers.my.uri": c.myURI,
 	})
 
 	if _, err := c.rClient.SAdd(context.Background(), viper.GetString("groupcache.peers.key"), c.myURI).Result(); err != nil {
