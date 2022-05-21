@@ -7,6 +7,7 @@ replace github.com/ptdave20/donordrive v0.0.0 => github.com/fragforce/donordrive
 
 require (
 	github.com/gin-gonic/gin v1.7.7
+	github.com/go-redis/redis/v8 v8.11.2
 	github.com/hibiken/asynq v0.23.0
 	github.com/mailgun/groupcache/v2 v2.3.1
 	github.com/mitchellh/go-homedir v1.1.0
@@ -25,7 +26,6 @@ require (
 	github.com/go-playground/locales v0.13.0 // indirect
 	github.com/go-playground/universal-translator v0.17.0 // indirect
 	github.com/go-playground/validator/v10 v10.4.1 // indirect
-	github.com/go-redis/redis/v8 v8.11.2 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/uuid v1.2.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
