@@ -63,7 +63,14 @@ func registerGroupF(groupName string, defaultCacheSizeMB int64, groupGetterF Gro
 			viper.GetInt64(cacheSizeKey),
 			groupcache.GetterFunc(func(ctx context.Context, key string, dest groupcache.Sink) error {
 				log := log.WithField("groupcache.key", key)
-				return groupGetterF(ctx, log, sgc, key, dest)
+				log.Trace("Running group getter")
+				err := groupGetterF(ctx, log, sgc, key, dest)
+				if err != nil {
+					log.WithError(err).Error("Problem running getter")
+				} else {
+					log.Trace("Ran getter successfully")
+				}
+				return err
 			}),
 		)
 	})
