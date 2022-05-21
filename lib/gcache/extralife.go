@@ -15,6 +15,7 @@ const (
 )
 
 func init() {
+	doCheckInits()
 	registerGroupF(GroupELTeam, 64, teamGroup)
 }
 

@@ -8,6 +8,10 @@ import (
 	"github.com/spf13/viper"
 )
 
+func init() {
+	doCheckInits()
+}
+
 func RegisterGroup(g *groupcache.Group) {
 	gLock.Lock()
 	defer gLock.Unlock()

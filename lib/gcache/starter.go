@@ -23,6 +23,12 @@ type SecuredHeaderTransport struct {
 	Token string
 }
 
+func init() {
+	doCheckInits()
+	viper.SetDefault("groupcache.token", InsecureToken)
+	viper.SetDefault("groupcache.peers.key", "peers")
+}
+
 func (ct *SecuredHeaderTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	req.Header.Add(TokenKey, ct.Token)
 	return ct.RoundTripper.RoundTrip(req)
@@ -176,9 +182,4 @@ func (c *SharedGCache) GroupCacheHandler(ctx *gin.Context) {
 
 	pool := c.GetPool()
 	pool.ServeHTTP(ctx.Writer, ctx.Request)
-}
-
-func init() {
-	viper.SetDefault("groupcache.token", InsecureToken)
-	viper.SetDefault("groupcache.peers.key", "peers")
 }

@@ -38,16 +38,37 @@ var (
 )
 
 func init() {
-	cLock = &sync.Mutex{}
-	gLock = &sync.Mutex{}
-	pLock = &sync.Mutex{}
-	groups = make(map[string]*groupcache.Group)
-	pendingGroupsF = make([]GroupFunc, 0)
-	pendingDone = false // Redundant
+	doCheckInits()
 	viper.SetDefault("groupcache.basedir", "/tmp/groupcache/")
 }
 
+//doCheckInits runs various local inits that need to run before others can do stuff - Safe to rerun many times
+func doCheckInits() {
+	if cLock == nil {
+		cLock = &sync.Mutex{}
+	}
+	if gLock == nil {
+		gLock = &sync.Mutex{}
+	}
+	if pLock == nil {
+		pLock = &sync.Mutex{}
+	}
+	// Lock in case we're being run later somehow...
+	// Might as well :shrug:
+	if groups == nil {
+		gLock.Lock()
+		groups = make(map[string]*groupcache.Group)
+		gLock.Unlock()
+	}
+	if pendingGroupsF == nil {
+		pLock.Lock()
+		pendingGroupsF = make([]GroupFunc, 0)
+		pLock.Unlock()
+	}
+}
+
 func NewSharedGCache(log *logrus.Entry, baseDir string, rClient *redis.Client) (*SharedGCache, error) {
+	doCheckInits()
 	log = log.WithField("cache.basedir", baseDir)
 
 	ret := SharedGCache{
@@ -69,6 +90,7 @@ func NewSharedGCache(log *logrus.Entry, baseDir string, rClient *redis.Client) (
 }
 
 func NewGlobalSharedGCache(log *logrus.Entry, baseDir string, rClient *redis.Client) (*SharedGCache, error) {
+	doCheckInits()
 	c, err := NewSharedGCache(log, baseDir, rClient)
 	if err != nil {
 		return nil, err
