@@ -36,7 +36,7 @@ func GetTeam(c *gin.Context) {
 	}
 
 	var data []byte
-	ctx, _ := context.WithTimeout(c, time.Second*10)
+	ctx, _ := context.WithTimeout(c, time.Second*7)
 	if err := teamCache.Get(ctx, teamID, groupcache.AllocatingByteSliceSink(&data)); err != nil {
 		fErr(err, "Couldn't get entry from team's group cache")
 		return
