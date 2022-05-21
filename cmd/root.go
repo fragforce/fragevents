@@ -190,7 +190,7 @@ func initLogging() {
 		"app": rootCmd.Name(),
 	})
 
-	if AmDebugging {
+	if AmDebugging && lvl > logrus.DebugLevel {
 		rootLog.SetLevel(logrus.DebugLevel)
 	}
 
