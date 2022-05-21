@@ -180,10 +180,11 @@ func initLogging() {
 	if err != nil {
 		panic("Bad log level: " + err.Error())
 	}
-	rootLog.SetLevel(lvl)
 	if AmDebugging && lvl != logrus.TraceLevel {
-		rootLog.SetLevel(logrus.DebugLevel)
+		lvl = logrus.DebugLevel
 	}
+	rootLog.SetLevel(lvl)
+
 	rootLog.SetFormatter(&logrus.JSONFormatter{
 		DisableTimestamp:  false,
 		DisableHTMLEscape: false,
@@ -191,13 +192,9 @@ func initLogging() {
 	rootLog.SetReportCaller(true)
 
 	log = rootLog.WithFields(logrus.Fields{
-		"app": rootCmd.Name(),
+		"app":               rootCmd.Name(),
+		"log.level.current": lvl.String(),
 	})
-
-	log = log.WithField("log.level.min", viper.GetString("log.level"))
-	if AmDebugging && lvl != logrus.TraceLevel {
-		log = log.WithField("log.level.min", "DEBUG")
-	}
 
 	for k, v := range viper.GetStringMapString("runtime") {
 		if strings.Contains(strings.ToLower(k), "kafka") || strings.Contains(strings.ToLower(v), "certificate") {
