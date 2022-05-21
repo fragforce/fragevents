@@ -15,7 +15,7 @@ import (
 func GetTeam(c *gin.Context) {
 	teamID := c.Param("teamid")
 	log := df.Log.WithFields(logrus.Fields{
-		"team.id": teamID,
+		"team.id.str": teamID,
 	})
 
 	fErr := func(err error, msg string) {
@@ -43,7 +43,7 @@ func GetTeam(c *gin.Context) {
 		return
 	}
 
-	log.Trace("Unmarshaling")
+	log.Trace("Unmarshalling")
 	// While we could get away without this, let's be sure the schema is right - security :)
 	team := donordrive.Team{}
 	if err := json.Unmarshal(data, &team); err != nil {
