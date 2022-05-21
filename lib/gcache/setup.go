@@ -68,7 +68,6 @@ func doCheckInits() {
 }
 
 func NewSharedGCache(log *logrus.Entry, baseDir string, rClient *redis.Client) (*SharedGCache, error) {
-	doCheckInits()
 	log = log.WithField("cache.basedir", baseDir)
 
 	ret := SharedGCache{
@@ -90,7 +89,6 @@ func NewSharedGCache(log *logrus.Entry, baseDir string, rClient *redis.Client) (
 }
 
 func NewGlobalSharedGCache(log *logrus.Entry, baseDir string, rClient *redis.Client) (*SharedGCache, error) {
-	doCheckInits()
 	c, err := NewSharedGCache(log, baseDir, rClient)
 	if err != nil {
 		return nil, err
