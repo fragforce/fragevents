@@ -15,6 +15,7 @@ const (
 )
 
 func init() {
+	donordrive.SetBaseUrl(donordrive.ExtraLifeUrl)
 	doCheckInits()
 	registerGroupF(GroupELTeam, 64, teamGroup)
 }
