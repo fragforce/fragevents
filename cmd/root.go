@@ -176,6 +176,7 @@ func initConfig() {
 
 func initLogging() {
 	rootLog = logrus.New()
+	log = log.WithField("log.level.min", viper.GetString("log.level"))
 	lvl, err := logrus.ParseLevel(viper.GetString("log.level"))
 	if err != nil {
 		panic("Bad log level: " + err.Error())
@@ -191,6 +192,7 @@ func initLogging() {
 	})
 
 	if AmDebugging && lvl != logrus.TraceLevel {
+		log = log.WithField("log.level.min", "DEBUG")
 		rootLog.SetLevel(logrus.DebugLevel)
 	}
 
