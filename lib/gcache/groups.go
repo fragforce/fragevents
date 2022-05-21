@@ -46,6 +46,7 @@ func (c *SharedGCache) initPendingGroupF() {
 		RegisterGroup(g)
 		log.Trace("Registered group")
 	}
+	pendingDone = true
 }
 
 //registerGroupF called from init to create+register groupcache create functions
