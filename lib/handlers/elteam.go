@@ -16,7 +16,6 @@ func GetTeam(c *gin.Context) {
 	teamID := c.Param("teamid")
 	log := df.Log.WithFields(logrus.Fields{
 		"team.id": teamID,
-		"gin.ctx": c,
 	})
 
 	fErr := func(err error, msg string) {
