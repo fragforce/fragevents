@@ -61,6 +61,7 @@ func init() {
 	viper.SetDefault("redis.poolsize", 120)
 	viper.SetDefault("asynq.workers", 32)
 	viper.SetDefault("groupcache.rdb", 2)
+	viper.SetDefault("groupcache.redis.retries", 6)
 }
 
 //parseRedisURL returns a parsed copy of the redis url. WARN: Does a FATAL on failure to parse.
@@ -104,12 +105,22 @@ func getRedisClient() *redis.Client {
 	parsedRedisURL := parseRedisURL()
 	passwd, _ := parsedRedisURL.User.Password()
 
-	rdb := redis.NewClient(&redis.Options{
-		Addr:     parsedRedisURL.Host,
-		Password: passwd,
-		DB:       viper.GetInt("groupcache.rdb"),
-	})
+	opts := redis.Options{
+		Addr:       parsedRedisURL.Host,
+		Password:   passwd,
+		DB:         viper.GetInt("groupcache.rdb"),
+		MaxRetries: viper.GetInt("groupcache.redis.retries"),
+	}
+	// If rediss, enable tls
+	if parsedRedisURL.Scheme == "rediss" {
+		opts.TLSConfig = &tls.Config{
+			InsecureSkipVerify: true,
+		}
+	}
 
+	rdb := redis.NewClient(&opts)
+
+	// Make sure we're connected
 	if err := rdb.Ping(context.Background()).Err(); err != nil {
 		panic("Problem connecting to redis: " + err.Error())
 	}
