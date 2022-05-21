@@ -28,21 +28,21 @@ func teamGroup(ctx context.Context, log *logrus.Entry, sgc *SharedGCache, key st
 	}
 	log = log.WithField("team.id", teamID)
 
-	log.Trace("Going to fetch team from extra-life")
+	log.Warn("Going to fetch team from extra-life")
 	team, err := donordrive.GetTeam(int(teamID))
 	if err != nil {
 		log.WithError(err).Error("Problem fetching team")
 		return err
 	}
 	log = log.WithField("team.name", team.Name)
-	log.Trace("Got team from extra-life")
+	log.Warn("Got team from extra-life")
 
 	res, err := json.Marshal(team)
 	if err != nil {
 		log.WithError(err).Error("Problem marshaling team into json")
 		return err
 	}
-
+	log.Warn("Done")
 	// FIXME: Dynamic timeout and/or viper based
 	return dest.SetBytes(res, time.Now().Add(time.Minute*5))
 }
