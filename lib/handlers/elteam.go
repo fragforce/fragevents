@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/fragforce/fragevents/lib/df"
 	"github.com/fragforce/fragevents/lib/gcache"
@@ -8,6 +9,7 @@ import (
 	"github.com/mailgun/groupcache/v2"
 	"github.com/ptdave20/donordrive"
 	"github.com/sirupsen/logrus"
+	"time"
 )
 
 func GetTeam(c *gin.Context) {
@@ -34,7 +36,8 @@ func GetTeam(c *gin.Context) {
 	}
 
 	var data []byte
-	if err := teamCache.Get(c, teamID, groupcache.AllocatingByteSliceSink(&data)); err != nil {
+	ctx, _ := context.WithTimeout(c, time.Second*10)
+	if err := teamCache.Get(ctx, teamID, groupcache.AllocatingByteSliceSink(&data)); err != nil {
 		fErr(err, "Couldn't get entry from team's group cache")
 		return
 	}
