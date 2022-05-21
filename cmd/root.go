@@ -40,7 +40,7 @@ var AmDebugging bool
 var rootCmd = &cobra.Command{
 	Use:   "fragevents",
 	Short: "A web app for donation events and info",
-	Long:  `See fragforce.org & https://github.com/fragforce/fragevents `,
+	Long:  `See fragforce.org & https://github.com/fragforce/fragevents`,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		log := log.WithFields(logrus.Fields{
 			"args": args,
