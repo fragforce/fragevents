@@ -18,6 +18,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import (
+	"context"
 	"crypto/tls"
 	"github.com/fragforce/fragevents/lib/tasks"
 	"github.com/go-redis/redis/v8"
@@ -108,6 +109,10 @@ func getRedisClient() *redis.Client {
 		Password: passwd,
 		DB:       viper.GetInt("groupcache.rdb"),
 	})
+
+	if err := rdb.Ping(context.Background()).Err(); err != nil {
+		panic("Problem connecting to redis: " + err.Error())
+	}
 
 	return rdb
 }
