@@ -44,7 +44,7 @@ func newTLSConfig() (*tls.Config, error) {
 		InsecureSkipVerify: true, // Hostnames always wrong - use cert func
 		RootCAs:            roots,
 		ClientAuth:         tls.RequireAndVerifyClientCert,
-		MinVersion:         tls.VersionTLS13,
+		MinVersion:         tls.VersionTLS11,
 		Renegotiation:      tls.RenegotiateNever,
 		VerifyPeerCertificate: func(rawCerts [][]byte, _ [][]*x509.Certificate) error {
 			vOpts := x509.VerifyOptions{Roots: roots}
