@@ -2,6 +2,7 @@ package gcache
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/fragforce/fragevents/lib/utils"
 	"github.com/gin-gonic/gin"
@@ -24,12 +25,18 @@ type SecuredHeaderTransport struct {
 	Ctx   context.Context
 }
 
+var (
+	ErrBadStatusCode = errors.New("bad status code returned")
+)
+
 func init() {
 	doCheckInits()
 	viper.SetDefault("groupcache.token", InsecureToken)
 	viper.SetDefault("groupcache.peers.key", "peers")
 	viper.SetDefault("groupcache.peer.update", time.Second*10)
 	viper.SetDefault("groupcache.wan.timeout", time.Second*5)
+	viper.SetDefault("peer.failed.sleep", time.Second*15) // How long to sleep between peer checks
+	viper.SetDefault("peer.failed.count", 10)             // How many checks must fail before a peer is removed
 }
 
 func (ct *SecuredHeaderTransport) RoundTrip(req *http.Request) (*http.Response, error) {
@@ -160,14 +167,45 @@ func (c *SharedGCache) checkPeer(log *logrus.Entry, uri string) {
 		log.Trace("Going to check peer")
 	}
 
+	for i := 0; i < viper.GetInt("peer.failed.count"); i++ {
+		log := log.WithField("check.number", i)
+		ok, err := c.checkPeerStatus(log, uri)
+		if err != nil {
+			log = log.WithError(err)
+		}
+		log = log.WithField("status.ok", ok)
+
+		if err == nil && ok {
+			log.Trace("Peer is ok!")
+			return
+		}
+		if c.peerDebug {
+			log.Trace("Peer not responding this time")
+		}
+		time.Sleep(viper.GetDuration("peer.failed.sleep"))
+	}
+
+	if c.peerDebug {
+		log.Debug("Removing peer from peer list in redis")
+	}
+	if err := c.removePeer(uri); err != nil {
+		log.WithError(err).Info("Error removing peer from peer list in redis")
+	}
+	return
+}
+
+//checkPeer checks if the given peer is up. If not, removes it from redis.
+func (c *SharedGCache) checkPeerStatus(log *logrus.Entry, uri string) (bool, error) {
+	log = log.WithField("peer.uri", uri)
+	if c.peerDebug {
+		log.Trace("Going to check peer")
+	}
+
 	client := http.Client{}
 	req, err := http.NewRequest("GET", fmt.Sprintf("%s/alive", uri), nil)
 	if err != nil {
-		log.WithError(err).Error("Problem creating request - Removing")
-		if err := c.removePeer(uri); err != nil {
-			log.WithError(err).Error("Error removing peer from peer list in redis")
-		}
-		return
+		log.WithError(err).Error("Problem creating request")
+		return false, err
 	}
 
 	req.Header = http.Header{
@@ -177,23 +215,17 @@ func (c *SharedGCache) checkPeer(log *logrus.Entry, uri string) {
 
 	res, err := client.Do(req)
 	if err != nil {
-		log.WithError(err).Info("Problem running request - Removing")
-		if err := c.removePeer(uri); err != nil {
-			log.WithError(err).Info("Error removing peer from peer list in redis")
-		}
-		return
+		log.WithError(err).Info("Problem running request")
+		return false, err
 	}
 	if res.StatusCode == 200 {
 		if c.peerDebug {
 			log.Trace("Done checking peer - it's ok")
 		}
-		return
+		return true, nil
 	}
 	log.WithField("status.code", res.StatusCode).Info("Problem with status code")
-	if err := c.removePeer(uri); err != nil {
-		log.WithError(err).Info("Error removing peer from peer list in redis")
-	}
-	return
+	return false, ErrBadStatusCode
 }
 
 //removeMyPeer removes ourselves from the redis based peer list
