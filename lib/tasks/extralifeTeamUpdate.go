@@ -26,7 +26,7 @@ func NewExtraLifeTeamUpdateTask(teamId int) (*asynq.Task, error) {
 	if err != nil {
 		return nil, err
 	}
-	return asynq.NewTask(TaskExtraLifeTeamUpdate, payload, asynq.MaxRetry(0)), nil
+	return asynq.NewTask(TaskExtraLifeTeamUpdate, payload, asynq.Timeout(time.Minute*10), asynq.MaxRetry(0)), nil
 }
 
 func HandleExtraLifeTeamUpdateTask(ctx context.Context, t *asynq.Task) error {
