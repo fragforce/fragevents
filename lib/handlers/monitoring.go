@@ -55,6 +55,8 @@ func RTypeTeamHandler(rType string, c *gin.Context, log *logrus.Entry) (statusCo
 		return http.StatusBadRequest, err
 	}
 
+	// FIXME: Add in TeamID checks
+
 	tm := mondb.NewTeamMonitor(tr.TeamID)
 	if err := tm.SetUpdateMonitoring(c); err != nil {
 		log.WithError(err).Info("Problem enabling monitoring")
@@ -70,6 +72,8 @@ func RTTypeParticipantHandler(rType string, c *gin.Context, log *logrus.Entry) (
 		log.WithError(err).Info("Problem binding JSON in request")
 		return http.StatusBadRequest, err
 	}
+
+	// FIXME: Add in ParticipantID checks
 
 	tm := mondb.NewParticipantMonitor(tr.ParticipantID)
 	if err := tm.SetUpdateMonitoring(c); err != nil {
