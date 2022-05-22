@@ -58,6 +58,7 @@ func HandleExtraLifeTeamUpdateTask(ctx context.Context, t *asynq.Task) error {
 	}
 	log = log.WithField("team.name", team.Name)
 
+	// Note the team
 	kWriteTeams, err := kdb.W.Get(ctx, viper.GetString("kafka.topics.teams"))
 	if err != nil {
 		log.WithError(err).Error("Problem getting kafka writer for teams")
