@@ -190,7 +190,7 @@ func GetAllParticipants(ctx context.Context) ([]*ParticipantMonitor, error) {
 		return nil, err
 	}
 
-	keys, err := rClient.SMembers(ctx, GetLookupKey(ParticipantMonitorIDSet)).Result()
+	keys, err := rClient.SMembers(ctx, GetLookupKey(df.MonitorNameParticipant, ParticipantMonitorIDSet)).Result()
 	if err != nil {
 		return nil, err
 	}
