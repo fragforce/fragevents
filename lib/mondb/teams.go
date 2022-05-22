@@ -1,7 +1,6 @@
 package mondb
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -11,21 +10,8 @@ import (
 	"github.com/go-redis/redis/v8"
 	"github.com/mailgun/groupcache/v2"
 	"github.com/segmentio/kafka-go"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"text/template"
 )
-
-func init() {
-	viper.SetDefault("team.monitor.template", `BEGIN
-Team-ID: {{ .TeamID }}
-Team-Name: {{ .Name }}
-Event-ID: {{ .EventID }}
-Event-Name: {{ .EventName }}
-
-Team: {{ .Team }}
-END`)
-}
 
 func (t *TeamMonitor) GetKey() string {
 	return fmt.Sprintf("%d", t.TeamID)
@@ -35,28 +21,9 @@ func (t *TeamMonitor) MonitorKey() string {
 	return t.MakeKey(t.GetKey())
 }
 
-//TeamKafkaKey are used in kafka for identity
+//TeamKafkaKey are used in kafka for identity - tl;dr All data, not fetch time though
 func (t *TeamMonitor) TeamKafkaKey(team *df.CachedTeam) ([]byte, error) {
-	log := df.Log.WithFields(logrus.Fields{
-		"team.id":      team.TeamID,
-		"team.name":    team.Name,
-		"event.id":     team.EventID,
-		"event.name":   team.EventName,
-		"last-refresh": team.GetFetchedAt(),
-	})
-
-	tplate, err := template.New(df.TextTemplateNameTeamMonitor).Parse(viper.GetString("team.monitor.template"))
-	if err != nil {
-		log.WithError(err).Error("Problem parsing team monitor template")
-		return nil, err
-	}
-
-	bf := new(bytes.Buffer)
-	if err := tplate.Execute(bf, team); err != nil {
-		log.WithError(err).Error("Problem executing team monitor template")
-		return nil, err
-	}
-	return bf.Bytes(), nil
+	return team.GetRawTeamData()
 }
 
 //TeamKafkaHeaders are used in kafka for info, routing, and debugging
