@@ -31,34 +31,48 @@ func NewExtraLifeTeamUpdateTask(teamId int) (*asynq.Task, error) {
 
 func HandleExtraLifeTeamUpdateTask(ctx context.Context, t *asynq.Task) error {
 	log := df.Log.WithField("task.type", t.Type()).WithContext(ctx)
+	log.Trace("Doing team update")
 
 	var p ExtraLifeTeamUpdate
 	if err := json.Unmarshal(t.Payload(), &p); err != nil {
 		log.WithError(err).Error("Problem unmarshalling payload")
 		return err
 	}
+	log = log.WithFields(logrus.Fields{
+		"team.id": p.TeamID,
+	})
 
 	// TODO: Maybe move this into TeamMonitor...?
 	tm := mondb.NewTeamMonitor(p.TeamID)
 
+	log.Trace("Checking monitoring")
 	amMon, err := tm.AmMonitoring(ctx)
 	if err != nil {
 		log.WithError(err).Error("Problem checking if monitored")
 		return err
 	}
+	log = log.WithField("team.monitoring", amMon)
 	if !amMon {
 		log.Debug("Not monitored anymore - skipping update")
 		return nil
 	}
 
+	log.Trace("Getting team")
 	team, err := tm.GetTeam(ctx)
 	if err != nil {
 		log.WithError(err).Error("Problem getting team from gca")
 		return err
 	}
-	log = log.WithField("team.name", team.Name)
+	log = log.WithFields(logrus.Fields{
+		"team.id":      team.TeamID,
+		"team.name":    team.Name,
+		"event.id":     team.EventID,
+		"event.name":   team.EventName,
+		"last-refresh": team.GetFetchedAt(),
+	})
+	log.Trace("Got team")
 
-	// Note the team
+	log.Trace("Recording to teams topic")
 	// TODO: Maybe move this into TeamMonitor...?
 	kWriteTeams, err := kdb.W.Get(ctx, viper.GetString("kafka.topics.teams"))
 	if err != nil {
@@ -80,7 +94,7 @@ func HandleExtraLifeTeamUpdateTask(ctx context.Context, t *asynq.Task) error {
 		return err
 	}
 
-	// Note the events
+	log.Trace("Recording to events topic")
 	// TODO: Maybe move this into TeamMonitor...?
 	kWriteEvents, err := kdb.W.Get(ctx, viper.GetString("kafka.topics.events"))
 	if err != nil {
@@ -102,6 +116,7 @@ func HandleExtraLifeTeamUpdateTask(ctx context.Context, t *asynq.Task) error {
 		return err
 	}
 
+	log.Trace("Done with team update")
 	return nil
 }
 
