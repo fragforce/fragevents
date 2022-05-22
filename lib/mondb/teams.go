@@ -1,6 +1,7 @@
 package mondb
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -10,8 +11,15 @@ import (
 	"github.com/go-redis/redis/v8"
 	"github.com/mailgun/groupcache/v2"
 	"github.com/segmentio/kafka-go"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"text/template"
 )
+
+func init() {
+	// Keep to things that are immutable for the team
+	viper.SetDefault("team.monitor.template", `{{ .TeamID }}-{{ .EventID }}`)
+}
 
 func (t *TeamMonitor) GetKey() string {
 	return fmt.Sprintf("%d", t.TeamID)
@@ -21,9 +29,33 @@ func (t *TeamMonitor) MonitorKey() string {
 	return t.MakeKey(t.GetKey())
 }
 
-//TeamKafkaKey are used in kafka for identity - tl;dr All data, not fetch time though
-func (t *TeamMonitor) TeamKafkaKey(team *df.CachedTeam) ([]byte, error) {
+//TeamKafkaKeyEvents is used in kafka for identity - For events topic (compacted) - tl;dr All data, not fetch time though
+func (t *TeamMonitor) TeamKafkaKeyEvents(team *df.CachedTeam) ([]byte, error) {
 	return team.GetRawTeamData()
+}
+
+//TeamKafkaKeyTeams is used in kafka for identity - For teams topic (compacted)
+func (t *TeamMonitor) TeamKafkaKeyTeams(team *df.CachedTeam) ([]byte, error) {
+	log := df.Log.WithFields(logrus.Fields{
+		"team.id":      team.TeamID,
+		"team.name":    team.Name,
+		"event.id":     team.EventID,
+		"event.name":   team.EventName,
+		"last-refresh": team.GetFetchedAt(),
+	})
+
+	tplate, err := template.New(df.TextTemplateNameTeamMonitor).Parse(viper.GetString("team.monitor.template"))
+	if err != nil {
+		log.WithError(err).Error("Problem parsing team monitor template")
+		return nil, err
+	}
+
+	bf := new(bytes.Buffer)
+	if err := tplate.Execute(bf, team); err != nil {
+		log.WithError(err).Error("Problem executing team monitor template")
+		return nil, err
+	}
+	return bf.Bytes(), nil
 }
 
 //TeamKafkaHeaders are used in kafka for info, routing, and debugging
@@ -60,9 +92,24 @@ func (t *TeamMonitor) TeamKafkaHeaders(team *df.CachedTeam) []kafka.Header {
 	return ret
 }
 
-//MakeTeamMessage creates the kafka message(s) for the given team
-func (t *TeamMonitor) MakeTeamMessage(team *df.CachedTeam) ([]kafka.Message, error) {
-	key, err := t.TeamKafkaKey(team)
+//MakeTeamMessages creates the kafka message(s) for the given team - teams topic
+func (t *TeamMonitor) MakeTeamMessages(team *df.CachedTeam) ([]kafka.Message, error) {
+	key, err := t.TeamKafkaKeyTeams(team)
+	if err != nil {
+		return nil, err
+	}
+	return []kafka.Message{
+		{
+			Key:     key,
+			Value:   team.RawData,
+			Headers: t.TeamKafkaHeaders(team),
+		},
+	}, nil
+}
+
+//MakeEventsMessages creates the kafka message(s) for the given team - events topic
+func (t *TeamMonitor) MakeEventsMessages(team *df.CachedTeam) ([]kafka.Message, error) {
+	key, err := t.TeamKafkaKeyEvents(team)
 	if err != nil {
 		return nil, err
 	}

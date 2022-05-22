@@ -59,13 +59,14 @@ func HandleExtraLifeTeamUpdateTask(ctx context.Context, t *asynq.Task) error {
 	log = log.WithField("team.name", team.Name)
 
 	// Note the team
+	// TODO: Maybe move this into TeamMonitor...?
 	kWriteTeams, err := kdb.W.Get(ctx, viper.GetString("kafka.topics.teams"))
 	if err != nil {
 		log.WithError(err).Error("Problem getting kafka writer for teams")
 		return err
 	}
 
-	msgs, err := tm.MakeTeamMessage(team)
+	msgs, err := tm.MakeTeamMessages(team)
 	if err != nil {
 		log.WithError(err).Error("Problem making kafka message(s)")
 		return err
@@ -76,6 +77,28 @@ func HandleExtraLifeTeamUpdateTask(ctx context.Context, t *asynq.Task) error {
 		msgs...,
 	); err != nil {
 		log.WithError(err).Error("Problem writing messages to kafka team topic")
+		return err
+	}
+
+	// Note the events
+	// TODO: Maybe move this into TeamMonitor...?
+	kWriteEvents, err := kdb.W.Get(ctx, viper.GetString("kafka.topics.events"))
+	if err != nil {
+		log.WithError(err).Error("Problem getting kafka writer for events")
+		return err
+	}
+
+	msgs, err = tm.MakeEventsMessages(team)
+	if err != nil {
+		log.WithError(err).Error("Problem making kafka message(s)")
+		return err
+	}
+
+	if err := kWriteEvents.WriteMessages(
+		ctx,
+		msgs...,
+	); err != nil {
+		log.WithError(err).Error("Problem writing messages to kafka events topic")
 		return err
 	}
 
