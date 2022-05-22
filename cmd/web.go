@@ -19,7 +19,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import (
 	"github.com/fragforce/fragevents/lib/handler_reg"
-	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -29,18 +28,10 @@ var webCmd = &cobra.Command{
 	Use:   "web",
 	Short: "Web frontend worker",
 	Run: func(cmd *cobra.Command, args []string) {
-		r := gin.Default()
-
-		if !AmDebugging {
-			gin.SetMode(gin.ReleaseMode)
-		} else {
-			gin.SetMode(gin.DebugMode)
-		}
-
 		// Add handlers
-		handler_reg.RegisterHandlers(r)
+		handler_reg.RegisterHandlers(ginEngine)
 
-		if err := r.Run(viper.GetString("listen") + ":" + viper.GetString("port")); err != nil {
+		if err := ginEngine.Run(viper.GetString("listen") + ":" + viper.GetString("port")); err != nil {
 			log.WithError(err).Fatal("Problem running GIN")
 		}
 	},

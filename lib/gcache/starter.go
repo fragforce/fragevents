@@ -3,7 +3,6 @@ package gcache
 import (
 	"context"
 	"fmt"
-	"github.com/fragforce/fragevents/lib/handler_global"
 	"github.com/fragforce/fragevents/lib/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/mailgun/groupcache/v2"
@@ -11,6 +10,7 @@ import (
 	"github.com/spf13/viper"
 	"net/http"
 	"strings"
+	"time"
 )
 
 const (
@@ -27,6 +27,7 @@ func init() {
 	doCheckInits()
 	viper.SetDefault("groupcache.token", InsecureToken)
 	viper.SetDefault("groupcache.peers.key", "peers")
+	viper.SetDefault("groupcache.peer.update", time.Second*10)
 }
 
 func (ct *SecuredHeaderTransport) RoundTrip(req *http.Request) (*http.Response, error) {
@@ -58,6 +59,9 @@ func (c *SharedGCache) createPool() error {
 	log.Trace("Have my uri built")
 
 	peers, err := c.fetchPeers()
+	if err != nil {
+		log.WithError(err).Warn("Problem fetching peers")
+	}
 	// Make sure we're first - Not really sure if it matters
 	peers = append([]string{myURI}, peers...)
 
@@ -85,7 +89,32 @@ func (c *SharedGCache) createPool() error {
 	c.myAddr = myIP
 	c.myPort = myPort
 
+	// Keep peer list updated
+	go c.doPeerUpdateLoop()
+
 	return nil
+}
+
+func (c *SharedGCache) doPeerUpdateLoop() {
+	log := c.log
+
+	time.Sleep(viper.GetDuration("groupcache.peer.update"))
+
+	for {
+		log.Trace("Checking peer list")
+		peers, err := c.fetchPeers()
+		if err != nil {
+			log.WithError(err).Warn("Problem fetching peers")
+		}
+
+		log.Trace("Updating peer list")
+		c.lock.Lock()
+		c.pool.Set(peers...)
+		c.lock.Unlock()
+		log.Trace("Updated peer list")
+
+		time.Sleep(viper.GetDuration("groupcache.peer.update"))
+	}
 }
 
 func (c *SharedGCache) fetchPeers() ([]string, error) {
@@ -191,27 +220,8 @@ func (c *SharedGCache) Shutdown() error {
 func (c *SharedGCache) StartRun(r *gin.Engine) error {
 	log := c.log
 
-	// Let someone pass in a gin engine if they already have one
-	if r == nil {
-		r = gin.Default()
-	}
-
-	if viper.GetBool("debug") {
-		gin.SetMode(gin.DebugMode)
-	} else {
-		gin.SetMode(gin.ReleaseMode)
-	}
-
 	// Add handlers
 	r.Any("/_groupcache/", c.GroupCacheHandler)
-	handler_global.RegisterGlobalHandlers(r) // Globals only - not web ones too
-
-	go func() {
-		// TODO: Allow caller to decide if they want to start or not
-		if err := r.Run(fmt.Sprintf("0.0.0.0:%d", c.myPort)); err != nil {
-			log.WithError(err).Fatal("Problem running GIN")
-		}
-	}()
 
 	// Add ourselves to the global list of groupcache URLs
 	if err := c.addMyPeer(); err != nil {

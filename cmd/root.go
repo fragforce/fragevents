@@ -21,7 +21,9 @@ import (
 	"fmt"
 	"github.com/fragforce/fragevents/lib/df"
 	"github.com/fragforce/fragevents/lib/gcache"
+	"github.com/fragforce/fragevents/lib/handler_global"
 	"github.com/fragforce/fragevents/lib/kdb"
+	"github.com/gin-gonic/gin"
 	"github.com/mitchellh/go-homedir"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -35,6 +37,7 @@ var cfgFile string
 var rootLog *logrus.Logger
 var log *logrus.Entry
 var AmDebugging bool
+var ginEngine *gin.Engine
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -46,13 +49,24 @@ var rootCmd = &cobra.Command{
 			"args": args,
 		})
 
+		log.Info("Setting up GIN")
+		ginEngine = gin.Default()
+
+		if !AmDebugging {
+			gin.SetMode(gin.ReleaseMode)
+		} else {
+			gin.SetMode(gin.DebugMode)
+		}
+
+		handler_global.RegisterGlobalHandlers(ginEngine)
+
 		log.Info("Setting up gcache")
 		gca, err := gcache.NewGlobalSharedGCache(log, viper.GetString("groupcache.basedir"), getRedisClient())
 		if err != nil {
 			log.WithError(err).Fatal("Problem setting up global shared groupcache")
 			return
 		}
-		if err := gca.StartRun(nil); err != nil {
+		if err := gca.StartRun(ginEngine); err != nil {
 			log.WithError(err).Fatal("Problem starting up global shared groupcache")
 			return
 		}

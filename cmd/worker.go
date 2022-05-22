@@ -45,6 +45,12 @@ var workerCmd = &cobra.Command{
 		mux := asynq.NewServeMux()
 		mux.HandleFunc(tasks.TaskExtraLifeUpdate, tasks.HandleExtraLifeUpdateTask)
 
+		go func() {
+			if err := ginEngine.Run(viper.GetString("listen") + ":" + viper.GetString("port")); err != nil {
+				log.WithError(err).Fatal("Problem running GIN")
+			}
+		}()
+
 		if err := srv.Run(mux); err != nil {
 			log.WithError(err).Fatal("Problem running asynq worker daemon")
 		}
