@@ -171,8 +171,9 @@ func HandleExtraLifeTeamsUpdateTask(ctx context.Context, t *asynq.Task) error {
 			log.Info("Ran into zero team id - skipping")
 			continue
 		}
+		tMon := teamMonitor.TeamID
 
-		task, err := NewExtraLifeTeamUpdateTask(teamMonitor.TeamID)
+		task, err := NewExtraLifeTeamUpdateTask(tMon)
 		if err != nil {
 			log.WithError(err).Error("Problem creating team update task")
 			return err
@@ -185,7 +186,7 @@ func HandleExtraLifeTeamsUpdateTask(ctx context.Context, t *asynq.Task) error {
 		}
 		log.WithField("task.id", tInfo.ID).Trace("Task 1 queued")
 
-		task2, err := NewExtraLifeTeamUpdateParticipantTask(teamMonitor.TeamID)
+		task2, err := NewExtraLifeTeamUpdateParticipantTask(tMon)
 		if err != nil {
 			log.WithError(err).Error("Problem creating team participant update task")
 			return err
