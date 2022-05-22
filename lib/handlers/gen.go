@@ -20,7 +20,8 @@ type BaseResponse struct {
 
 type DetailedStatusResponse struct {
 	*BaseResponse
-	Caches map[string]groupcache.Stats `json:"cache-stats"`
+	Caches          map[string]groupcache.Stats `json:"cache-stats"`
+	CachePeersCount int                         `json:"cache-peers-count"`
 }
 
 //NewErrorResp creates a new base response - should only be used for bad calls
@@ -44,6 +45,13 @@ func GetDetailedStatus(c *gin.Context) {
 	log := df.Log.WithContext(c)
 	gca := gcache.GlobalCache()
 
+	peers, err := gca.FetchPeers()
+	if err != nil {
+		log.WithError(err).Error("Couldn't get cache peers")
+		c.JSON(http.StatusInternalServerError, NewErrorResp(err, "Couldn't get cache peers"))
+		return
+	}
+
 	// Cache Status
 	groups, err := gca.GetAllGroups()
 	if err != nil {
@@ -57,7 +65,8 @@ func GetDetailedStatus(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, DetailedStatusResponse{
-		BaseResponse: NewBaseResp(),
-		Caches:       cStatus,
+		BaseResponse:    NewBaseResp(),
+		Caches:          cStatus,
+		CachePeersCount: len(peers),
 	})
 }
