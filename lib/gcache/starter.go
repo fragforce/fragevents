@@ -34,7 +34,9 @@ func init() {
 
 func (ct *SecuredHeaderTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	req.Header.Add(TokenKey, fmt.Sprintf("Bearer %s", ct.Token))
-	return ct.RoundTripper.RoundTrip(req.WithContext(ct.Ctx))
+	ctx, canc := context.WithTimeout(ct.Ctx, time.Second*3)
+	defer canc()
+	return ct.RoundTripper.RoundTrip(req.WithContext(ctx))
 }
 
 //GetPool returns pool to register to "/_groupcache/" web handler
@@ -45,7 +47,8 @@ func (c *SharedGCache) GetPool() *groupcache.HTTPPool {
 func (c *SharedGCache) createPool() error {
 	log := c.log
 
-	ctx, _ := context.WithTimeout(context.Background(), viper.GetDuration("groupcache.wan.timeout"))
+	ctx, canc := context.WithTimeout(context.Background(), viper.GetDuration("groupcache.wan.timeout"))
+	defer canc()
 	myIP, err := utils.GetExternalIP(ctx)
 	if err != nil {
 		log.WithError(err).Error("Problem getting interface ip")
