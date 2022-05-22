@@ -6,10 +6,13 @@ import (
 	"github.com/mailgun/groupcache/v2"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"time"
 )
 
 func init() {
 	doCheckInits()
+	viper.SetDefault("cache.stat.initial", time.Minute*10) // How long to wait before posting the first time
+	viper.SetDefault("cache.stat.sleep", time.Minute*5)    // How long in between posts after the first
 }
 
 func RegisterGroup(g *groupcache.Group) {
@@ -60,7 +63,7 @@ func registerGroupF(groupName string, defaultCacheSizeMB int64, groupGetterF Gro
 	err := RegisterPendingGroup(func(log *logrus.Entry, sgc *SharedGCache) *groupcache.Group {
 		log = log.WithField("cache.size.bytes", viper.GetInt64(cacheSizeKey))
 		log.Debug("Creating new group")
-		return groupcache.NewGroup(
+		ret := groupcache.NewGroup(
 			groupName,
 			viper.GetInt64(cacheSizeKey),
 			groupcache.GetterFunc(func(ctx context.Context, key string, dest groupcache.Sink) error {
@@ -74,9 +77,28 @@ func registerGroupF(groupName string, defaultCacheSizeMB int64, groupGetterF Gro
 				return nil
 			}),
 		)
+		// Log the group's stats every once in a while
+		go sgc.logCacheStats(log, ret)
+		return ret
 	})
 	if err != nil {
 		panic(fmt.Sprintf("Problem setting up group: %e", err))
+	}
+}
+
+//logCacheStats gets run via go routine to run forever and log the groupcache.Group stats every x period
+func (c *SharedGCache) logCacheStats(log *logrus.Entry, group *groupcache.Group) {
+	sleepPeriod := viper.GetDuration("cache.stat.sleep")
+	log = log.WithField("sleep.period", sleepPeriod)
+	time.Sleep(viper.GetDuration("cache.stat.initial"))
+	for {
+		log.WithFields(logrus.Fields{
+			"group.stats.raw":  group.Stats,
+			"group.name":       group.Name(),
+			"group.stats.main": group.CacheStats(groupcache.MainCache),
+			"group.stats.hot":  group.CacheStats(groupcache.HotCache),
+		}).Info("Cache stats")
+		time.Sleep(sleepPeriod)
 	}
 }
 
