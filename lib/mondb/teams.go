@@ -44,7 +44,7 @@ func (t *TeamMonitor) TeamKafkaKeyTeams(team *df.CachedTeam) ([]byte, error) {
 		"last-refresh": team.GetFetchedAt(),
 	})
 
-	tplate, err := template.New(df.TextTemplateNameTeamMonitor).Parse(viper.GetString("team.monitor.template"))
+	tplate, err := template.New(df.TextTemplateTeamMonitor).Parse(viper.GetString("team.monitor.template"))
 	if err != nil {
 		log.WithError(err).Error("Problem parsing team monitor template")
 		return nil, err
@@ -218,8 +218,9 @@ func GetAllTeams(ctx context.Context) ([]*TeamMonitor, error) {
 	return ret, nil
 }
 
+//GetTeam gets the cached team info
 func (t *TeamMonitor) GetTeam(ctx context.Context) (*df.CachedTeam, error) {
-	log := df.Log
+	log := df.Log.WithField("team.id", t.TeamID)
 	gca := gcache.GlobalCache()
 	teamGC, err := gca.GetGroupByName(gcache.GroupELTeam)
 	if err != nil {
@@ -245,4 +246,34 @@ func (t *TeamMonitor) GetTeam(ctx context.Context) (*df.CachedTeam, error) {
 	team.RawData = data // Set late
 
 	return &team, nil
+}
+
+//GetTeamParticipants gets the cached list of participants for the team
+func (t *TeamMonitor) GetTeamParticipants(ctx context.Context) (*df.CachedParticipants, error) {
+	log := df.Log.WithField("team.id", t.TeamID)
+	gca := gcache.GlobalCache()
+	teamPGC, err := gca.GetGroupByName(gcache.GroupELParticipantForTeam)
+	if err != nil {
+		log.WithError(err).Error("Problem getting gca group by name")
+		return nil, err
+	}
+
+	log.Trace("Kicking off cache get/fill")
+	var data []byte
+	if err := teamPGC.Get(ctx, t.GetKey(), groupcache.AllocatingByteSliceSink(&data)); err != nil {
+		log.WithError(err).Error("Couldn't get entry from participants's group cache")
+		return nil, err
+	}
+
+	log.Trace("Unmarshalling")
+	// While we could get away without this, let's be sure the schema is right - security :)
+	participants := df.CachedParticipants{}
+	if err := json.Unmarshal(data, &participants); err != nil {
+		log.WithError(err).Error("Couldn't unmarshal participants participants")
+		return nil, err
+	}
+	log = log.WithField("participants.count", participants.Count)
+	participants.RawData = data // Set late
+
+	return &participants, nil
 }
