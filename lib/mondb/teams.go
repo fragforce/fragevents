@@ -21,10 +21,12 @@ func (t *TeamMonitor) MonitorKey() string {
 	return t.MakeKey(t.GetKey())
 }
 
+//TeamKafkaKey are used in kafka for identity
 func (t *TeamMonitor) TeamKafkaKey(team *df.CachedTeam) []byte {
 	return []byte(t.MakeKey(t.GetKey(), team.GetFetchedAt()))
 }
 
+//TeamKafkaHeaders are used in kafka for info, routing, and debugging
 func (t *TeamMonitor) TeamKafkaHeaders(team *df.CachedTeam) []kafka.Header {
 	ret := make([]kafka.Header, 0)
 	if team.TeamID != nil {
@@ -58,6 +60,7 @@ func (t *TeamMonitor) TeamKafkaHeaders(team *df.CachedTeam) []kafka.Header {
 	return ret
 }
 
+//MakeTeamMessage creates the kafka message(s) for the given team
 func (t *TeamMonitor) MakeTeamMessage(team *df.CachedTeam) []kafka.Message {
 	return []kafka.Message{
 		{
