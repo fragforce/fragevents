@@ -3,7 +3,7 @@ module github.com/fragforce/fragevents
 // +heroku goVersion go1.18
 go 1.18
 
-replace github.com/ptdave20/donordrive v0.0.0 => github.com/fragforce/donordrive v0.0.2-0.20220522005320-3957b49fcbf3
+replace github.com/ptdave20/donordrive v0.0.0 => github.com/fragforce/donordrive v0.0.2-0.20220522010140-f88752629d86
 
 require (
 	github.com/gin-gonic/gin v1.7.7
