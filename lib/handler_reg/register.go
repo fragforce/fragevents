@@ -8,8 +8,13 @@ import (
 func RegisterHandlers(r *gin.Engine) {
 	// Add more here that should only be used for web hosting
 
-	// Quick GetTeam f
+	// Temp stuff
 	r.GET("/team/:teamid/", handlers.GetTeam)
 	r.POST("/v1/register/:rtype/", handlers.RegisterType)
+
+	// Registration
+	r.POST("/v1/:rtype/register", handlers.RegisterType)
+	// Cached calls
+	r.GET("/v1/team/:teamid/", handlers.GetTeam)
 
 }
