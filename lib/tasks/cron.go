@@ -12,6 +12,7 @@ func RegisterSched(scheduler *asynq.Scheduler) {
 	//https://github.com/hibiken/asynq/wiki/Periodic-Tasks#entries
 
 	// Quick, very frequently run update jobs
+	// FIXME: Move durations to viper
 	registerUpdateJob(log, scheduler, NewExtraLifeTeamsUpdateTask(), time.Second*60)
 	registerUpdateJob(log, scheduler, NewExtraLifeParticipantsUpdateTask(), time.Second*120)
 }
