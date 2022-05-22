@@ -31,7 +31,7 @@ func NewExtraLifeTeamUpdateTask(teamId int) (*asynq.Task, error) {
 }
 
 func HandleExtraLifeTeamUpdateTask(ctx context.Context, t *asynq.Task) error {
-	log := df.Log
+	log := df.Log.WithField("task.type", t.Type()).WithContext(ctx)
 
 	var p ExtraLifeTeamUpdate
 	if err := json.Unmarshal(t.Payload(), &p); err != nil {
@@ -86,7 +86,7 @@ func NewExtraLifeTeamsUpdateTask() *asynq.Task {
 }
 
 func HandleExtraLifeTeamsUpdateTask(ctx context.Context, t *asynq.Task) error {
-	log := df.Log
+	log := df.Log.WithField("task.type", t.Type()).WithContext(ctx)
 	aClient := df.GetAsyncQClient()
 
 	teamMonitors, err := mondb.GetAllTeams(ctx)
