@@ -16,5 +16,7 @@ func RegisterHandlers(r *gin.Engine) {
 	r.POST("/v1/:rtype/register", handlers.RegisterType)
 	// Cached calls
 	r.GET("/v1/team/:teamid/", handlers.GetTeam)
+	r.GET("/v1/team/:teamid/participants/", handlers.GetTeamParticipants)
+	r.GET("/v1/participant/:participantid/", handlers.GetParticipant)
 
 }
