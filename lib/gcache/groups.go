@@ -92,12 +92,22 @@ func (c *SharedGCache) logCacheStats(log *logrus.Entry, group *groupcache.Group)
 	log = log.WithField("sleep.period", sleepPeriod)
 	time.Sleep(viper.GetDuration("cache.stat.initial"))
 	for {
-		log.WithFields(logrus.Fields{
+		log := log.WithFields(logrus.Fields{
 			"group.stats.raw":  group.Stats,
 			"group.name":       group.Name(),
 			"group.stats.main": group.CacheStats(groupcache.MainCache),
 			"group.stats.hot":  group.CacheStats(groupcache.HotCache),
-		}).Info("Cache stats")
+		})
+
+		if peers, err := c.fetchPeers(); err != nil {
+			log = log.WithError(err) // Just add it in :shrug:
+		} else {
+			log = log.WithFields(logrus.Fields{
+				"group.peers": peers,
+			})
+		}
+
+		log.Info("Cache stats")
 		time.Sleep(sleepPeriod)
 	}
 }
