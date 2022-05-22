@@ -6,6 +6,7 @@ import (
 	"github.com/fragforce/fragevents/lib/mondb"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 	"net/http"
 	"sync"
 )
@@ -76,7 +77,7 @@ func RTTypeParticipantHandler(rType string, c *gin.Context, log *logrus.Entry) (
 	// FIXME: Add in ParticipantID checks
 
 	tm := mondb.NewParticipantMonitor(tr.ParticipantID)
-	if err := tm.SetUpdateMonitoring(c); err != nil {
+	if err := tm.SetUpdateMonitoring(c, viper.GetDuration("participant.active")); err != nil {
 		log.WithError(err).Info("Problem enabling monitoring")
 		return http.StatusInternalServerError, err
 	}

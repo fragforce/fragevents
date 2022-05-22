@@ -143,7 +143,7 @@ func (t *ParticipantMonitor) MakeEventsMessages(p *df.CachedParticipant) ([]kafk
 }
 
 //SetUpdateMonitoring turns on monitoring for team.active period
-func (t *ParticipantMonitor) SetUpdateMonitoring(ctx context.Context) error {
+func (t *ParticipantMonitor) SetUpdateMonitoring(ctx context.Context, duration time.Duration) error {
 	rClient, err := GetRedisClient()
 	if err != nil {
 		return err
@@ -156,7 +156,7 @@ func (t *ParticipantMonitor) SetUpdateMonitoring(ctx context.Context) error {
 		return err
 	}
 
-	if err := rClient.Set(ctx, key, data, viper.GetDuration("participant.active")).Err(); err != nil {
+	if err := rClient.Set(ctx, key, data, duration).Err(); err != nil {
 		return err
 	}
 
@@ -209,6 +209,15 @@ func (t *ParticipantMonitor) AmMonitoring(ctx context.Context) (bool, error) {
 		return false, err
 	}
 	log = log.WithField("team.monitoring", amMon)
+
+	if amMon {
+		log.Debug("Setting participant as monitored for a bit since the team is monitored")
+		if err := t.SetUpdateMonitoring(ctx, viper.GetDuration("participant.team.active")); err != nil {
+			log.WithError(err).Error("Problem setting participant as monitored")
+			return false, err
+		}
+	}
+
 	log.Trace("Using results from team monitoring")
 	return amMon, nil
 }

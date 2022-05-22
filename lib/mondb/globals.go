@@ -17,6 +17,7 @@ const (
 func init() {
 	viper.SetDefault("team.active", time.Hour*24)
 	viper.SetDefault("participant.active", time.Hour*24)
+	viper.SetDefault("participant.team.active", time.Hour*1) // How long to mark the participant as active if it's team is monitored atm
 }
 
 //GetRedisClient get our redis client
