@@ -17,7 +17,7 @@ func RegisterSched(scheduler *asynq.Scheduler) {
 
 //registerUpdateJob helper to register quick update tasks
 func registerUpdateJob(log *logrus.Entry, scheduler *asynq.Scheduler, taskName string) {
-	entryID, err := scheduler.Register("@every 5s", asynq.NewTask(taskName, nil, asynq.MaxRetry(0))) // Never retry it!
+	entryID, err := scheduler.Register("@every 5s", asynq.NewTask(taskName, nil, asynq.MaxRetry(1))) // Never retry it!
 	if err != nil {
 		log.WithError(err).Fatal("Couldn't register cron job")
 	}
