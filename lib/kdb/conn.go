@@ -29,9 +29,9 @@ func newTLSConfig() (*tls.Config, error) {
 		return nil, err
 	}
 
-	cert, err := tls.LoadX509KeyPair(
-		viper.GetString("runtime.kafka_client_cert"),
-		viper.GetString("runtime.kafka_client_cert_key"),
+	cert, err := tls.X509KeyPair(
+		[]byte(viper.GetString("runtime.kafka_client_cert")),
+		[]byte(viper.GetString("runtime.kafka_client_cert_key")),
 	)
 	if err != nil {
 		log.WithError(err).Error("Problem loading kafka client key pair")
