@@ -59,7 +59,7 @@ func registerGroupF(groupName string, defaultCacheSizeMB int64, groupGetterF Gro
 
 	err := RegisterPendingGroup(func(log *logrus.Entry, sgc *SharedGCache) *groupcache.Group {
 		log = log.WithField("cache.size.bytes", viper.GetInt64(cacheSizeKey))
-		log.Trace("Creating new group")
+		log.Debug("Creating new group")
 		return groupcache.NewGroup(
 			groupName,
 			viper.GetInt64(cacheSizeKey),
