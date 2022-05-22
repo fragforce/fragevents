@@ -56,7 +56,7 @@ func RTypeTeamHandler(rType string, c *gin.Context, log *logrus.Entry) (statusCo
 	}
 
 	tm := mondb.NewTeamMonitor(tr.TeamID)
-	if err := tm.SetUpdateMonitoring(); err != nil {
+	if err := tm.SetUpdateMonitoring(c); err != nil {
 		log.WithError(err).Info("Problem enabling monitoring")
 		return http.StatusInternalServerError, err
 	}
@@ -72,7 +72,7 @@ func RTTypeParticipantHandler(rType string, c *gin.Context, log *logrus.Entry) (
 	}
 
 	tm := mondb.NewParticipantMonitor(tr.ParticipantID)
-	if err := tm.SetUpdateMonitoring(); err != nil {
+	if err := tm.SetUpdateMonitoring(c); err != nil {
 		log.WithError(err).Info("Problem enabling monitoring")
 		return http.StatusInternalServerError, err
 	}

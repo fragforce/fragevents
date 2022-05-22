@@ -11,7 +11,8 @@ func (t *TeamMonitor) GetKey() string {
 	return fmt.Sprintf("%d", t.TeamID)
 }
 
-func (t *TeamMonitor) SetUpdateMonitoring() error {
+//SetUpdateMonitoring turns on monitoring for team.active period
+func (t *TeamMonitor) SetUpdateMonitoring(ctx context.Context) error {
 	rClient, err := t.GetRedisClient()
 	if err != nil {
 		return err
@@ -24,14 +25,29 @@ func (t *TeamMonitor) SetUpdateMonitoring() error {
 		return err
 	}
 
-	if err := rClient.Set(context.Background(), key, data, viper.GetDuration("team.active")).Err(); err != nil {
+	if err := rClient.Set(ctx, key, data, viper.GetDuration("team.active")).Err(); err != nil {
 		return err
 	}
 
 	// Make lookups for what we have quick - will have to verify where they point exists
-	if err := rClient.SAdd(context.Background(), t.GetLookupKey(TeamMonitorIDSet), key).Err(); err != nil {
+	if err := rClient.SAdd(ctx, t.GetLookupKey(TeamMonitorIDSet), key).Err(); err != nil {
 		return err
 	}
 
 	return nil
+}
+
+//AmMonitoring are we monitoring this id
+func (t *TeamMonitor) AmMonitoring(ctx context.Context) (bool, error) {
+	rClient, err := t.GetRedisClient()
+	if err != nil {
+		return false, err
+	}
+
+	key := t.MakeKey(t.GetKey())
+	cnt, err := rClient.Exists(ctx, key).Result()
+	if err != nil {
+		return false, err
+	}
+	return cnt == 1, nil
 }
