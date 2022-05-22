@@ -173,7 +173,10 @@ func GetAllTeams(ctx context.Context) ([]*TeamMonitor, error) {
 		return nil, err
 	}
 
-	keys, err := rClient.SMembers(ctx, GetLookupKey(df.MonitorNameTeam, TeamMonitorIDSet)).Result()
+	sKey := GetLookupKey(df.MonitorNameTeam, TeamMonitorIDSet)
+	log = log.WithField("teams.key", sKey)
+
+	keys, err := rClient.SMembers(ctx, sKey).Result()
 	if err != nil {
 		log.WithError(err).Error("Problem getting monitor id set")
 		return nil, err
