@@ -166,6 +166,12 @@ func HandleExtraLifeTeamsUpdateTask(ctx context.Context, t *asynq.Task) error {
 			"team.id":      teamMonitor.TeamID,
 			"monitor.name": teamMonitor.MonitorName,
 		})
+
+		if teamMonitor.TeamID == 0 {
+			log.Info("Ran into zero team id - skipping")
+			continue
+		}
+
 		task, err := NewExtraLifeTeamUpdateTask(teamMonitor.TeamID)
 		if err != nil {
 			log.WithError(err).Error("Problem creating team update task")
