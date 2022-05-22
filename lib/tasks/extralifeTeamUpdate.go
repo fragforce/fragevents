@@ -68,9 +68,9 @@ func HandleExtraLifeTeamUpdateTask(ctx context.Context, t *asynq.Task) error {
 	if err := kWriteTeams.WriteMessages(
 		ctx,
 		kafka.Message{
-			Key:   tm.TeamKafkaKey(),
-			Value: teamData,
-			//Headers: nil,
+			Key:     tm.TeamKafkaKey(&team.FetchedAt),
+			Value:   teamData,
+			Headers: nil,
 		},
 	); err != nil {
 		log.WithError(err).Error("Problem writing messages to kafka team topic")

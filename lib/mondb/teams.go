@@ -9,8 +9,8 @@ import (
 	"github.com/fragforce/fragevents/lib/gcache"
 	"github.com/go-redis/redis/v8"
 	"github.com/mailgun/groupcache/v2"
-	"github.com/ptdave20/donordrive"
 	"github.com/spf13/viper"
+	"time"
 )
 
 func (t *TeamMonitor) GetKey() string {
@@ -21,8 +21,8 @@ func (t *TeamMonitor) MonitorKey() string {
 	return t.MakeKey(t.GetKey())
 }
 
-func (t *TeamMonitor) TeamKafkaKey() []byte {
-	return []byte(t.MonitorKey())
+func (t *TeamMonitor) TeamKafkaKey(fetched *time.Time) []byte {
+	return []byte(t.MakeKey(t.GetKey(), fetched.UTC().Format(time.RFC3339Nano)))
 }
 
 //SetUpdateMonitoring turns on monitoring for team.active period
@@ -117,7 +117,7 @@ func GetAllTeams(ctx context.Context) ([]*TeamMonitor, error) {
 	return ret, nil
 }
 
-func (t *TeamMonitor) GetTeam(ctx context.Context) (*donordrive.Team, []byte, error) {
+func (t *TeamMonitor) GetTeam(ctx context.Context) (*df.CachedTeam, []byte, error) {
 	log := df.Log
 	gca := gcache.GlobalCache()
 	teamGC, err := gca.GetGroupByName(gcache.GroupELTeam)
@@ -135,7 +135,7 @@ func (t *TeamMonitor) GetTeam(ctx context.Context) (*donordrive.Team, []byte, er
 
 	log.Trace("Unmarshalling")
 	// While we could get away without this, let's be sure the schema is right - security :)
-	team := donordrive.Team{}
+	team := df.CachedTeam{}
 	if err := json.Unmarshal(data, &team); err != nil {
 		log.WithError(err).Error("Couldn't unmarshal team")
 		return nil, nil, err

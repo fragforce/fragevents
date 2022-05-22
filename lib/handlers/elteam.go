@@ -7,7 +7,6 @@ import (
 	"github.com/fragforce/fragevents/lib/gcache"
 	"github.com/gin-gonic/gin"
 	"github.com/mailgun/groupcache/v2"
-	"github.com/ptdave20/donordrive"
 	"github.com/sirupsen/logrus"
 	"net/http"
 	"time"
@@ -15,7 +14,7 @@ import (
 
 type TeamResponse struct {
 	*BaseResponse
-	Team *donordrive.Team `json:"team"`
+	Team *df.CachedTeam `json:"team"`
 }
 
 func GetTeam(c *gin.Context) {
@@ -44,7 +43,7 @@ func GetTeam(c *gin.Context) {
 
 	log.Trace("Unmarshalling")
 	// While we could get away without this, let's be sure the schema is right - security :)
-	team := donordrive.Team{}
+	team := df.CachedTeam{}
 	if err := json.Unmarshal(data, &team); err != nil {
 		log.WithError(err).Error("Couldn't unmarshal team")
 		c.JSON(http.StatusInternalServerError, NewErrorResp(err, "Couldn't unmarshal team"))

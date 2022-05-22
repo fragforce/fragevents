@@ -3,6 +3,7 @@ package gcache
 import (
 	"context"
 	"encoding/json"
+	"github.com/fragforce/fragevents/lib/df"
 	"github.com/mailgun/groupcache/v2"
 	"github.com/ptdave20/donordrive"
 	"github.com/sirupsen/logrus"
@@ -37,7 +38,11 @@ func teamGroup(ctx context.Context, log *logrus.Entry, sgc *SharedGCache, key st
 	log = log.WithField("team.name", team.Name)
 	log.Warn("Got team from extra-life")
 
-	res, err := json.Marshal(team)
+	cTeam := df.CachedTeam{
+		Team:      *team,
+		FetchedAt: time.Now().UTC(),
+	}
+	res, err := json.Marshal(&cTeam)
 	if err != nil {
 		log.WithError(err).Error("Problem marshaling team into json")
 		return err

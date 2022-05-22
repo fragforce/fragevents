@@ -29,12 +29,12 @@ func GetRedisClient() (*redis.Client, error) {
 	return df.QuickClient(df.RPoolMonitoring, true)
 }
 
-func (m *BaseMonitor) MakeKey(key string) string {
-	return MakeKey(m.MonitorName, key)
+func (m *BaseMonitor) MakeKey(key ...string) string {
+	return MakeKey(m.MonitorName, key...)
 }
 
-func MakeKey(monName string, key string) string {
-	return fmt.Sprintf("monitor-%s-%s", monName, key)
+func MakeKey(monName string, key ...string) string {
+	return fmt.Sprintf("monitor-%s-%s", monName, strings.Join(key, "-"))
 }
 
 func (m *BaseMonitor) GetLookupKey(parts ...string) string {
