@@ -113,7 +113,9 @@ func NewKafkaWriter(ctx context.Context, topic string) (writer *kafka.Writer, er
 			log.WithError(err).Error("Problem making url into url")
 			return nil, err
 		}
-		addrs = append(addrs, u.Host)
+		if u.Host != "" {
+			addrs = append(addrs, u.Host)
+		}
 	}
 	log = log.WithField("kafka.addrs", addrs)
 	log.Trace("Set kafka addrs")
