@@ -28,6 +28,7 @@ func init() {
 	viper.SetDefault("groupcache.token", InsecureToken)
 	viper.SetDefault("groupcache.peers.key", "peers")
 	viper.SetDefault("groupcache.peer.update", time.Second*10)
+	viper.SetDefault("groupcache.wan.timeout", time.Second*5)
 }
 
 func (ct *SecuredHeaderTransport) RoundTrip(req *http.Request) (*http.Response, error) {
@@ -43,7 +44,8 @@ func (c *SharedGCache) GetPool() *groupcache.HTTPPool {
 func (c *SharedGCache) createPool() error {
 	log := c.log
 
-	myIP, err := utils.GetLocalIP()
+	ctx, _ := context.WithTimeout(context.Background(), viper.GetDuration("groupcache.wan.timeout"))
+	myIP, err := utils.GetExternalIP(ctx)
 	if err != nil {
 		log.WithError(err).Error("Problem getting interface ip")
 		return err
