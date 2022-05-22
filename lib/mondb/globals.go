@@ -7,7 +7,13 @@ import (
 	"github.com/fragforce/fragevents/lib/df"
 	"github.com/go-redis/redis/v8"
 	"github.com/spf13/viper"
+	"strings"
 	"time"
+)
+
+const (
+	TeamMonitorIDSet        = "id-set"
+	ParticipantMonitorIDSet = "id-set"
 )
 
 func init() {
@@ -28,6 +34,11 @@ func (t *TeamMonitor) GetKey() string {
 	return fmt.Sprintf("%d", t.TeamID)
 }
 
+func (m *BaseMonitor) GetLookupKey(parts ...string) string {
+	partsStr := strings.Join(parts, "-")
+	return fmt.Sprintf("monitor-%s-%s", m.MonitorName, partsStr)
+}
+
 func (t *TeamMonitor) SetUpdateMonitoring() error {
 	rClient, err := t.GetRedisClient()
 	if err != nil {
@@ -42,6 +53,11 @@ func (t *TeamMonitor) SetUpdateMonitoring() error {
 	}
 
 	if err := rClient.Set(context.Background(), key, data, viper.GetDuration("team.active")).Err(); err != nil {
+		return err
+	}
+
+	// Make lookups for what we have quick - will have to verify where they point exists
+	if err := rClient.SAdd(context.Background(), t.GetLookupKey(TeamMonitorIDSet), key).Err(); err != nil {
 		return err
 	}
 
@@ -66,6 +82,11 @@ func (t *ParticipantMonitor) SetUpdateMonitoring() error {
 	}
 
 	if err := rClient.Set(context.Background(), key, data, viper.GetDuration("participant.active")).Err(); err != nil {
+		return err
+	}
+
+	// Make lookups for what we have quick - will have to verify where they point exists
+	if err := rClient.SAdd(context.Background(), t.GetLookupKey(ParticipantMonitorIDSet), key).Err(); err != nil {
 		return err
 	}
 
