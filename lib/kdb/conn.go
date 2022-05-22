@@ -9,6 +9,7 @@ import (
 	"github.com/fragforce/fragevents/lib/df"
 	"github.com/segmentio/kafka-go"
 	"github.com/spf13/viper"
+	"net/url"
 	"time"
 )
 
@@ -103,8 +104,20 @@ func NewKafkaWriter(ctx context.Context, topic string) (writer *kafka.Writer, er
 		return nil, err
 	}
 
+	kURLs := viper.GetStringSlice("kafka.urls")
+	addrs := make([]string, len(kURLs))
+	for _, kURL := range kURLs {
+		log := log.WithField("url.raw", kURLs)
+		u, err := url.ParseRequestURI(kURL)
+		if err != nil {
+			log.WithError(err).Error("Problem making url into url")
+			return nil, err
+		}
+		addrs = append(addrs, u.Host)
+	}
+
 	writer = &kafka.Writer{
-		Addr:                   kafka.TCP(viper.GetStringSlice("kafka.urls")...),
+		Addr:                   kafka.TCP(addrs...),
 		Topic:                  topic,
 		Balancer:               &kafka.Hash{},
 		MaxAttempts:            0,
