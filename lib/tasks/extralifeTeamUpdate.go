@@ -38,6 +38,7 @@ func HandleExtraLifeTeamUpdateTask(ctx context.Context, t *asynq.Task) error {
 		return err
 	}
 
+	// TODO: Maybe move this into TeamMonitor...?
 	tm := mondb.NewTeamMonitor(p.TeamID)
 
 	amMon, err := tm.AmMonitoring(ctx)
