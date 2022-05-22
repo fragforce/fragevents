@@ -8,7 +8,6 @@ import (
 	"github.com/fragforce/fragevents/lib/mondb"
 	"github.com/hibiken/asynq"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 )
 
 const (
@@ -74,7 +73,7 @@ func HandleExtraLifeTeamUpdateTask(ctx context.Context, t *asynq.Task) error {
 
 	log.Trace("Recording to teams topic")
 	// TODO: Maybe move this into TeamMonitor...?
-	kWriteTeams, err := kdb.W.Get(ctx, viper.GetString("kafka.topics.teams"))
+	kWriteTeams, err := kdb.W.Get(ctx, kdb.MakeTopicName(df.KTopicTeams))
 	if err != nil {
 		log.WithError(err).Error("Problem getting kafka writer for teams")
 		return err
@@ -96,7 +95,7 @@ func HandleExtraLifeTeamUpdateTask(ctx context.Context, t *asynq.Task) error {
 
 	log.Trace("Recording to events topic")
 	// TODO: Maybe move this into TeamMonitor...?
-	kWriteEvents, err := kdb.W.Get(ctx, viper.GetString("kafka.topics.events"))
+	kWriteEvents, err := kdb.W.Get(ctx, kdb.MakeTopicName(df.KTopicEvents))
 	if err != nil {
 		log.WithError(err).Error("Problem getting kafka writer for events")
 		return err

@@ -1,10 +1,15 @@
 package kdb
 
-import "github.com/spf13/viper"
+import (
+	"fmt"
+	"github.com/spf13/viper"
+)
 
-func init() {
-	viper.SetDefault("kafka.topics.events", "events")
-	viper.SetDefault("kafka.topics.teams", "teams")
-	viper.SetDefault("kafka.topics.participants", "participants")
-	viper.SetDefault("kafka.topics.donations", "donations")
+//MakeTopicName creates a topic name - adds the prefix if needed
+func MakeTopicName(topicType string) string {
+	prefix := viper.GetString("runtime.prefix")
+	if prefix != "" {
+		return fmt.Sprintf("%s.%s", prefix, topicType)
+	}
+	return topicType
 }

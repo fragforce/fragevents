@@ -23,4 +23,9 @@ const (
 	KHeaderKeyFetchedAt = "fetched-at"
 	//	Text parser templates - Used as names for text/templates
 	TextTemplateNameTeamMonitor = "team-monitor-template"
+	// 	Topic Types - Kafka topic names/types - needs prefix usually
+	KTopicEvents       = "events"
+	KTopicTeams        = "teams"
+	KTopicParticipants = "participants"
+	KTopicDonations    = "donations"
 )

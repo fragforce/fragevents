@@ -23,7 +23,7 @@ func newTLSConfig() (*tls.Config, error) {
 
 	roots := x509.NewCertPool()
 
-	ok := roots.AppendCertsFromPEM([]byte(viper.GetString("runtime.kafka_trusted_cert")))
+	ok := roots.AppendCertsFromPEM([]byte(viper.GetString("runtime.trusted_cert")))
 	if !ok {
 		err := errors.New("invalid kafka trusted cert")
 		log.WithError(err).Error("Invalid kafka trusted cert")
@@ -31,8 +31,8 @@ func newTLSConfig() (*tls.Config, error) {
 	}
 
 	cert, err := tls.X509KeyPair(
-		[]byte(viper.GetString("runtime.kafka_client_cert")),
-		[]byte(viper.GetString("runtime.kafka_client_cert_key")),
+		[]byte(viper.GetString("runtime.client_cert")),
+		[]byte(viper.GetString("runtime.client_cert_key")),
 	)
 	if err != nil {
 		log.WithError(err).Error("Problem loading kafka client key pair")
