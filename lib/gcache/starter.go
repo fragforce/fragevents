@@ -107,10 +107,8 @@ func (c *SharedGCache) doPeerUpdateLoop() {
 
 	time.Sleep(viper.GetDuration("groupcache.peer.update"))
 
-	peerDebug := viper.GetBool("debug.peers") && viper.GetBool("debug")
-
 	for {
-		if peerDebug {
+		if c.peerDebug {
 			log.Trace("Checking peer list")
 		}
 		peers, err := c.fetchPeers()
@@ -118,13 +116,13 @@ func (c *SharedGCache) doPeerUpdateLoop() {
 			log.WithError(err).Warn("Problem fetching peers")
 		}
 
-		if peerDebug {
+		if c.peerDebug {
 			log.Trace("Updating peer list")
 		}
 		c.lock.Lock()
 		c.pool.Set(peers...)
 		c.lock.Unlock()
-		if peerDebug {
+		if c.peerDebug {
 			log.Trace("Updated peer list")
 		}
 
@@ -133,7 +131,6 @@ func (c *SharedGCache) doPeerUpdateLoop() {
 }
 
 func (c *SharedGCache) fetchPeers() ([]string, error) {
-	peerDebug := viper.GetBool("debug.peers") && viper.GetBool("debug")
 	log := c.log.WithFields(logrus.Fields{
 		"peers.key":    viper.GetString("groupcache.peers.key"),
 		"peers.my.uri": c.myURI,
@@ -144,7 +141,7 @@ func (c *SharedGCache) fetchPeers() ([]string, error) {
 		return res, err
 	}
 	log = log.WithField("peers.pre", res)
-	if peerDebug {
+	if c.peerDebug {
 		log.Trace("Fetched the groupcache peer list from redis")
 	}
 
@@ -159,7 +156,9 @@ func (c *SharedGCache) fetchPeers() ([]string, error) {
 //checkPeer checks if the given peer is up. If not, removes it from redis.
 func (c *SharedGCache) checkPeer(log *logrus.Entry, uri string) {
 	log = log.WithField("peer.uri", uri)
-	log.Trace("Going to check peer")
+	if c.peerDebug {
+		log.Trace("Going to check peer")
+	}
 
 	client := http.Client{}
 	req, err := http.NewRequest("GET", fmt.Sprintf("%s/alive", uri), nil)
@@ -185,7 +184,9 @@ func (c *SharedGCache) checkPeer(log *logrus.Entry, uri string) {
 		return
 	}
 	if res.StatusCode == 200 {
-		log.Trace("Done checking peer - it's ok")
+		if c.peerDebug {
+			log.Trace("Done checking peer - it's ok")
+		}
 		return
 	}
 	log.WithField("status.code", res.StatusCode).Info("Problem with status code")
@@ -210,7 +211,9 @@ func (c *SharedGCache) removePeer(peerURI string) error {
 		log.WithError(err).Error("Problem removing ourself from the groupcache peer list")
 		return err
 	}
-	log.Trace("Removed ourselves to groupcache peer list")
+	if c.peerDebug {
+		log.Trace("Removed peer from groupcache peer list")
+	}
 	return nil
 }
 
@@ -225,7 +228,9 @@ func (c *SharedGCache) addMyPeer() error {
 		log.WithError(err).Error("Problem adding ourself to groupcache peer list")
 		return err
 	}
-	log.Trace("Added ourselves to groupcache peer list")
+	if c.peerDebug {
+		log.Trace("Added ourselves to groupcache peer list")
+	}
 	return nil
 }
 

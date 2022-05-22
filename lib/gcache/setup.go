@@ -11,14 +11,15 @@ import (
 )
 
 type SharedGCache struct {
-	lock    *sync.Mutex
-	baseDir string
-	log     *logrus.Entry
-	pool    *groupcache.HTTPPool
-	myURI   string
-	myAddr  string
-	myPort  int
-	rClient *redis.Client
+	lock      *sync.Mutex
+	baseDir   string
+	log       *logrus.Entry
+	pool      *groupcache.HTTPPool
+	myURI     string
+	myAddr    string
+	myPort    int
+	rClient   *redis.Client
+	peerDebug bool
 }
 
 type GroupFunc func(log *logrus.Entry, sgc *SharedGCache) *groupcache.Group
@@ -71,10 +72,11 @@ func NewSharedGCache(log *logrus.Entry, baseDir string, rClient *redis.Client) (
 	log = log.WithField("cache.basedir", baseDir)
 
 	ret := SharedGCache{
-		lock:    &sync.Mutex{},
-		baseDir: baseDir,
-		log:     log,
-		rClient: rClient,
+		lock:      &sync.Mutex{},
+		baseDir:   baseDir,
+		log:       log,
+		rClient:   rClient,
+		peerDebug: viper.GetBool("debug.peers") && viper.GetBool("debug"),
 	}
 
 	// Init gcache pool
