@@ -107,18 +107,26 @@ func (c *SharedGCache) doPeerUpdateLoop() {
 
 	time.Sleep(viper.GetDuration("groupcache.peer.update"))
 
+	peerDebug := viper.GetBool("debug.peers") && viper.GetBool("debug")
+
 	for {
-		log.Trace("Checking peer list")
+		if peerDebug {
+			log.Trace("Checking peer list")
+		}
 		peers, err := c.fetchPeers()
 		if err != nil {
 			log.WithError(err).Warn("Problem fetching peers")
 		}
 
-		log.Trace("Updating peer list")
+		if peerDebug {
+			log.Trace("Updating peer list")
+		}
 		c.lock.Lock()
 		c.pool.Set(peers...)
 		c.lock.Unlock()
-		log.Trace("Updated peer list")
+		if peerDebug {
+			log.Trace("Updated peer list")
+		}
 
 		time.Sleep(viper.GetDuration("groupcache.peer.update"))
 	}
