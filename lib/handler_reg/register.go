@@ -10,5 +10,6 @@ func RegisterHandlers(r *gin.Engine) {
 
 	// Quick GetTeam f
 	r.GET("/team/:teamid/", handlers.GetTeam)
+	r.POST("/v1/register/:rtype/", handlers.RegisterType)
 
 }

@@ -223,8 +223,8 @@ func (c *SharedGCache) Shutdown() error {
 	return c.removeMyPeer()
 }
 
-//StartRun handles the startup prep and background run of our groupcache node
-func (c *SharedGCache) StartRun(r *gin.Engine) error {
+//StartRunPrep handles the startup prep
+func (c *SharedGCache) StartRunPrep(r *gin.Engine) error {
 	log := c.log
 
 	// Add handlers

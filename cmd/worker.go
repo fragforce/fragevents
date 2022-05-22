@@ -18,15 +18,12 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import (
-	"context"
 	"crypto/tls"
+	"github.com/fragforce/fragevents/lib/df"
 	"github.com/fragforce/fragevents/lib/tasks"
-	"github.com/go-redis/redis/v8"
 	"github.com/hibiken/asynq"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"net/url"
-	"os"
 	"time"
 )
 
@@ -70,27 +67,11 @@ func init() {
 	viper.SetDefault("groupcache.redis.retries", 6)
 }
 
-//parseRedisURL returns a parsed copy of the redis url. WARN: Does a FATAL on failure to parse.
-func parseRedisURL() *url.URL {
-	log := log
-	rawURL := os.Getenv("REDIS_URL")
-	log = log.WithField("url", rawURL)
-
-	parsedRedisURL, err := url.Parse(rawURL)
-	if err != nil {
-		log.WithError(err).WithField("url", rawURL).Fatal("Failed to parse Redis URL")
-	}
-
-	_, ok := parsedRedisURL.User.Password()
-	if !ok {
-		log.Warn("No redis password")
-	}
-
-	return parsedRedisURL
-}
-
 func buildRedisConn() asynq.RedisClientOpt {
-	parsedRedisURL := parseRedisURL()
+	parsedRedisURL, err := df.ParseRedisURL()
+	if err != nil {
+		log.WithError(err).Fatal("Problem getting parsed URL")
+	}
 	passwd, _ := parsedRedisURL.User.Password()
 
 	return asynq.RedisClientOpt{
@@ -105,31 +86,4 @@ func buildRedisConn() asynq.RedisClientOpt {
 			InsecureSkipVerify: true,
 		},
 	}
-}
-
-func getRedisClient() *redis.Client {
-	parsedRedisURL := parseRedisURL()
-	passwd, _ := parsedRedisURL.User.Password()
-
-	opts := redis.Options{
-		Addr:       parsedRedisURL.Host,
-		Password:   passwd,
-		DB:         viper.GetInt("groupcache.rdb"),
-		MaxRetries: viper.GetInt("groupcache.redis.retries"),
-	}
-	// If rediss, enable tls
-	if parsedRedisURL.Scheme == "rediss" {
-		opts.TLSConfig = &tls.Config{
-			InsecureSkipVerify: true,
-		}
-	}
-
-	rdb := redis.NewClient(&opts)
-
-	// Make sure we're connected
-	if err := rdb.Ping(context.Background()).Err(); err != nil {
-		panic("Problem connecting to redis: " + err.Error())
-	}
-
-	return rdb
 }

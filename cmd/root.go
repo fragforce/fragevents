@@ -49,6 +49,12 @@ var rootCmd = &cobra.Command{
 			"args": args,
 		})
 
+		log.Info("Setting up Redis clients")
+		if err := df.GlobalInit(log); err != nil {
+			log.WithError(err).Fatal("Problem setting up redis clients")
+			return
+		}
+
 		log.Info("Setting up GIN")
 		ginEngine = gin.Default()
 
@@ -60,13 +66,25 @@ var rootCmd = &cobra.Command{
 
 		handler_global.RegisterGlobalHandlers(ginEngine)
 
+		log.Info("Setting up gcache's redis client")
+		gcRdb, err := df.GetGlobal().GetCreatePool(df.RPoolGroupCache).GetClient(true)
+		if err != nil {
+			log.WithError(err).Fatal("Problem getting redis client for group cache")
+			return
+		}
+
 		log.Info("Setting up gcache")
-		gca, err := gcache.NewGlobalSharedGCache(log, viper.GetString("groupcache.basedir"), getRedisClient())
+		gca, err := gcache.NewGlobalSharedGCache(
+			log,
+			viper.GetString("groupcache.basedir"),
+			gcRdb,
+		)
 		if err != nil {
 			log.WithError(err).Fatal("Problem setting up global shared groupcache")
 			return
 		}
-		if err := gca.StartRun(ginEngine); err != nil {
+		log.Info("Start/Run Prep GCA")
+		if err := gca.StartRunPrep(ginEngine); err != nil {
 			log.WithError(err).Fatal("Problem starting up global shared groupcache")
 			return
 		}
