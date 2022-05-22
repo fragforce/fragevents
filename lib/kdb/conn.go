@@ -105,7 +105,7 @@ func NewKafkaWriter(ctx context.Context, topic string) (writer *kafka.Writer, er
 	}
 
 	kURLs := viper.GetStringSlice("kafka.urls")
-	addrs := make([]string, len(kURLs))
+	addrs := make([]string, 0)
 	for _, kURL := range kURLs {
 		log := log.WithField("url.raw", kURLs)
 		u, err := url.ParseRequestURI(kURL)
