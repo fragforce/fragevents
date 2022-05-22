@@ -12,7 +12,6 @@ import (
 
 type SharedGCache struct {
 	lock      *sync.Mutex
-	baseDir   string
 	log       *logrus.Entry
 	pool      *groupcache.HTTPPool
 	myURI     string
@@ -40,7 +39,6 @@ var (
 
 func init() {
 	doCheckInits()
-	viper.SetDefault("groupcache.basedir", "/tmp/groupcache/")
 }
 
 //doCheckInits runs various local inits that need to run before others can do stuff - Safe to rerun many times
@@ -68,12 +66,9 @@ func doCheckInits() {
 	}
 }
 
-func NewSharedGCache(log *logrus.Entry, baseDir string, rClient *redis.Client) (*SharedGCache, error) {
-	log = log.WithField("cache.basedir", baseDir)
-
+func NewSharedGCache(log *logrus.Entry, rClient *redis.Client) (*SharedGCache, error) {
 	ret := SharedGCache{
 		lock:      &sync.Mutex{},
-		baseDir:   baseDir,
 		log:       log,
 		rClient:   rClient,
 		peerDebug: viper.GetBool("debug.peers") && viper.GetBool("debug"),
@@ -90,8 +85,8 @@ func NewSharedGCache(log *logrus.Entry, baseDir string, rClient *redis.Client) (
 	return &ret, nil
 }
 
-func NewGlobalSharedGCache(log *logrus.Entry, baseDir string, rClient *redis.Client) (*SharedGCache, error) {
-	c, err := NewSharedGCache(log, baseDir, rClient)
+func NewGlobalSharedGCache(log *logrus.Entry, rClient *redis.Client) (*SharedGCache, error) {
+	c, err := NewSharedGCache(log, rClient)
 	if err != nil {
 		return nil, err
 	}

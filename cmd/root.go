@@ -76,7 +76,6 @@ var rootCmd = &cobra.Command{
 		log.Info("Setting up gcache")
 		gca, err := gcache.NewGlobalSharedGCache(
 			log,
-			viper.GetString("groupcache.basedir"),
 			gcRdb,
 		)
 		if err != nil {
