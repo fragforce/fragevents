@@ -99,7 +99,7 @@ func (c *SharedGCache) logCacheStats(log *logrus.Entry, group *groupcache.Group)
 			"group.stats.hot":  group.CacheStats(groupcache.HotCache),
 		})
 
-		if peers, err := c.fetchPeers(); err != nil {
+		if peers, err := c.FetchPeers(); err != nil {
 			log = log.WithError(err) // Just add it in :shrug:
 		} else {
 			log = log.WithFields(logrus.Fields{

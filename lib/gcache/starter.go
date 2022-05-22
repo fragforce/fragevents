@@ -64,7 +64,7 @@ func (c *SharedGCache) createPool() error {
 
 	log.Trace("Have my uri built")
 
-	peers, err := c.fetchPeers()
+	peers, err := c.FetchPeers()
 	if err != nil {
 		log.WithError(err).Warn("Problem fetching peers")
 	}
@@ -111,7 +111,7 @@ func (c *SharedGCache) doPeerUpdateLoop() {
 		if c.peerDebug {
 			log.Trace("Checking peer list")
 		}
-		peers, err := c.fetchPeers()
+		peers, err := c.FetchPeers()
 		if err != nil {
 			log.WithError(err).Warn("Problem fetching peers")
 		}
@@ -130,7 +130,7 @@ func (c *SharedGCache) doPeerUpdateLoop() {
 	}
 }
 
-func (c *SharedGCache) fetchPeers() ([]string, error) {
+func (c *SharedGCache) FetchPeers() ([]string, error) {
 	log := c.log.WithFields(logrus.Fields{
 		"peers.key":    viper.GetString("groupcache.peers.key"),
 		"peers.my.uri": c.myURI,
