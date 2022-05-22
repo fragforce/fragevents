@@ -6,6 +6,7 @@ import "github.com/hibiken/asynq"
 func GetMux() *asynq.ServeMux {
 	mux := asynq.NewServeMux()
 	mux.HandleFunc(TaskExtraLifeTeamUpdate, HandleExtraLifeTeamUpdateTask)
+	mux.HandleFunc(TaskExtraLifeTeamParticipantUpdate, HandleExtraLifeTeamUpdateParticipantTask)
 	mux.HandleFunc(TaskExtraLifeTeamsUpdate, HandleExtraLifeTeamsUpdateTask)
 	return mux
 }
