@@ -31,30 +31,30 @@ func (t *TeamMonitor) TeamKafkaHeaders(team *df.CachedTeam) []kafka.Header {
 	ret := make([]kafka.Header, 0)
 	if team.TeamID != nil {
 		ret = append(ret, kafka.Header{
-			Key:   "team-id",
+			Key:   df.KHeaderKeyTeamID,
 			Value: []byte(fmt.Sprintf("%d", *team.TeamID)),
 		})
 	}
 	if team.Name != nil {
 		ret = append(ret, kafka.Header{
-			Key:   "team-name",
+			Key:   df.KHeaderKeyTeamName,
 			Value: []byte(*team.Name),
 		})
 	}
 	if team.EventID != nil {
 		ret = append(ret, kafka.Header{
-			Key:   "event-id",
+			Key:   df.KHeaderKeyEventID,
 			Value: []byte(fmt.Sprintf("%d", *team.EventID)),
 		})
 	}
 	if team.EventName != nil {
 		ret = append(ret, kafka.Header{
-			Key:   "event-name",
+			Key:   df.KHeaderKeyEventName,
 			Value: []byte(*team.EventName),
 		})
 	}
 	ret = append(ret, kafka.Header{
-		Key:   "fetched-at",
+		Key:   df.KHeaderKeyFetchedAt,
 		Value: []byte(team.GetFetchedAt()),
 	})
 	return ret
