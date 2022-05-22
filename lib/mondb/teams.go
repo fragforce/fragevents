@@ -68,37 +68,46 @@ func (t *TeamMonitor) AmMonitoring(ctx context.Context) (bool, error) {
 
 //GetAllTeams returns a list of all monitored teams
 func GetAllTeams(ctx context.Context) ([]*TeamMonitor, error) {
+	log := df.Log
+
 	rClient, err := GetRedisClient()
 	if err != nil {
+		log.WithError(err).Error("Problem getting redis client")
 		return nil, err
 	}
 
 	keys, err := rClient.SMembers(ctx, GetLookupKey(TeamMonitorIDSet)).Result()
 	if err != nil {
+		log.WithError(err).Error("Problem getting monitor id set")
 		return nil, err
 	}
 
 	ret := make([]*TeamMonitor, 0) // Can't assume len - might have to remove some
 	for _, key := range keys {
+		log := log.WithField("key", key)
 		data, err := rClient.Get(ctx, key).Bytes()
 		if errors.Is(err, redis.Nil) {
-			// Doesn't exist
+			log.Trace("Doesn't exist")
 			continue
 		}
 		if err != nil {
 			// Something else happened
+			log.WithError(err).Error("Problem with member key lookup")
 			return nil, err
 		}
 
 		tm, err := NewTeamMonitorFromJSON(data)
 		if err != nil {
+			log.WithError(err).Error("Problem with turning json data into team")
 			return nil, err
 		}
 
 		// While it existed earlier, maybe in the future other checks will be here - so do it again
 		if amMon, err := tm.AmMonitoring(ctx); err != nil {
+			log.WithError(err).Info("Problem getting monitoring info")
 			return nil, err
 		} else if !amMon {
+			log.WithError(err).Info("Not monitoring anymore")
 			continue // Not monitoring
 		}
 
