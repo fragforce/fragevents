@@ -66,13 +66,12 @@ func registerGroupF(groupName string, defaultCacheSizeMB int64, groupGetterF Gro
 			groupcache.GetterFunc(func(ctx context.Context, key string, dest groupcache.Sink) error {
 				log := log.WithField("groupcache.key", key)
 				log.Trace("Running group getter")
-				err := groupGetterF(ctx, log, sgc, key, dest)
-				if err != nil {
+				if err := groupGetterF(ctx, log, sgc, key, dest); err != nil {
 					log.WithError(err).Error("Problem running getter")
-				} else {
-					log.Trace("Ran getter successfully")
+					return err
 				}
-				return err
+				log.Trace("Ran getter successfully")
+				return nil
 			}),
 		)
 	})
