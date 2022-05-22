@@ -1,6 +1,9 @@
 package mondb
 
-import "github.com/fragforce/fragevents/lib/df"
+import (
+	"encoding/json"
+	"github.com/fragforce/fragevents/lib/df"
+)
 
 func NewBaseMonitor(monName string) *BaseMonitor {
 	return &BaseMonitor{
@@ -20,4 +23,20 @@ func NewParticipantMonitor(participantID int) *ParticipantMonitor {
 		BaseMonitor:   NewBaseMonitor(df.MonitorNameParticipant),
 		ParticipantID: participantID,
 	}
+}
+
+func NewTeamMonitorFromJSON(data []byte) (*TeamMonitor, error) {
+	ret := TeamMonitor{}
+	if err := json.Unmarshal(data, &ret); err != nil {
+		return nil, err
+	}
+	return &ret, nil
+}
+
+func NewParticipantMonitorFromJSON(data []byte) (*ParticipantMonitor, error) {
+	ret := ParticipantMonitor{}
+	if err := json.Unmarshal(data, &ret); err != nil {
+		return nil, err
+	}
+	return &ret, nil
 }

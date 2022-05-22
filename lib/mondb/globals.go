@@ -21,14 +21,27 @@ func init() {
 
 //GetRedisClient get our redis client
 func (m *BaseMonitor) GetRedisClient() (*redis.Client, error) {
+	return GetRedisClient()
+}
+
+//GetRedisClient get our redis client
+func GetRedisClient() (*redis.Client, error) {
 	return df.QuickClient(df.RPoolMonitoring, true)
 }
 
 func (m *BaseMonitor) MakeKey(key string) string {
-	return fmt.Sprintf("monitor-%s-%s", m.MonitorName, key)
+	return MakeKey(m.MonitorName, key)
+}
+
+func MakeKey(monName string, key string) string {
+	return fmt.Sprintf("monitor-%s-%s", monName, key)
 }
 
 func (m *BaseMonitor) GetLookupKey(parts ...string) string {
+	return GetLookupKey(m.MonitorName, parts...)
+}
+
+func GetLookupKey(monName string, parts ...string) string {
 	partsStr := strings.Join(parts, "-")
-	return fmt.Sprintf("monitor-%s-%s", m.MonitorName, partsStr)
+	return fmt.Sprintf("monitor-%s-%s", monName, partsStr)
 }
