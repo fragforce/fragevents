@@ -12,8 +12,8 @@ func RegisterSched(scheduler *asynq.Scheduler) {
 	//https://github.com/hibiken/asynq/wiki/Periodic-Tasks#entries
 
 	// Quick, very frequently run update jobs
-	registerUpdateJob(log, scheduler, NewExtraLifeTeamsUpdateTask(), time.Second*15)
-	registerUpdateJob(log, scheduler, NewExtraLifeParticipantsUpdateTask(), time.Second*30)
+	registerUpdateJob(log, scheduler, NewExtraLifeTeamsUpdateTask(), time.Second*60)
+	registerUpdateJob(log, scheduler, NewExtraLifeParticipantsUpdateTask(), time.Second*120)
 }
 
 //registerUpdateJob helper to register quick update tasks
