@@ -112,7 +112,7 @@ func HandleExtraLifeTeamsUpdateTask(ctx context.Context, t *asynq.Task) error {
 		}
 		log.WithField("task.id", tInfo.ID).Trace("Task queued")
 	}
-	log.Trace("Done")
+	log.Trace("Done with triggering el team updates")
 
 	return nil
 }
