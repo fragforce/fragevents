@@ -39,6 +39,7 @@ var schedCmd = &cobra.Command{
 			df.BuildAsyncQRedis(),
 			&asynq.SchedulerOpts{
 				Location: loc,
+				Logger:   log,
 			},
 		)
 
