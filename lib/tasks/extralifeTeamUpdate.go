@@ -68,6 +68,8 @@ func HandleExtraLifeTeamUpdateTask(ctx context.Context, t *asynq.Task) error {
 		"event.id":     team.EventID,
 		"event.name":   team.EventName,
 		"last-refresh": team.GetFetchedAt(),
+		"topic.teams":  kdb.MakeTopicName(df.KTopicTeams),
+		"topic.events": kdb.MakeTopicName(df.KTopicEvents),
 	})
 	log.Trace("Got team")
 
