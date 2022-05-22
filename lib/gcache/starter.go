@@ -52,7 +52,7 @@ func (c *SharedGCache) createPool() error {
 	}
 	log = log.WithField("my.ip", myIP)
 
-	myPort := viper.GetInt("port") + 1
+	myPort := viper.GetInt("port")
 	log = log.WithField("my.port", myPort)
 
 	myURI := fmt.Sprintf("http://%s:%d", myIP, myPort)
