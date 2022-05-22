@@ -20,10 +20,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 import (
 	"github.com/fragforce/fragevents/lib/tasks"
 	"github.com/hibiken/asynq"
+	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"time"
-
-	"github.com/spf13/cobra"
 )
 
 // schedCmd represents the sched command
