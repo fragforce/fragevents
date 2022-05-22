@@ -125,7 +125,7 @@ func NewKafkaWriter(ctx context.Context, topic string) (writer *kafka.Writer, er
 		MaxAttempts:            5,
 		BatchTimeout:           120,
 		WriteTimeout:           120,
-		RequiredAcks:           2,
+		RequiredAcks:           kafka.RequireAll,
 		Logger:                 log,
 		ErrorLogger:            log,
 		Transport:              transport,
