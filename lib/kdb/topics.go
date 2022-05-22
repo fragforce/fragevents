@@ -9,7 +9,7 @@ import (
 func MakeTopicName(topicType string) string {
 	prefix := viper.GetString("runtime.prefix")
 	if prefix != "" {
-		return fmt.Sprintf("%s.%s", prefix, topicType)
+		return fmt.Sprintf("%s%s", prefix, topicType)
 	}
 	return topicType
 }
