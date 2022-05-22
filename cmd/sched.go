@@ -18,6 +18,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import (
+	"github.com/fragforce/fragevents/lib/df"
 	"github.com/fragforce/fragevents/lib/tasks"
 	"github.com/hibiken/asynq"
 	"github.com/spf13/cobra"
@@ -35,7 +36,7 @@ var schedCmd = &cobra.Command{
 			panic(err)
 		}
 		scheduler := asynq.NewScheduler(
-			buildRedisConn(),
+			df.BuildAsyncQRedis(),
 			&asynq.SchedulerOpts{
 				Location: loc,
 			},

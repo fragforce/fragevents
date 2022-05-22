@@ -5,12 +5,24 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/fragforce/fragevents/lib/df"
+	"github.com/fragforce/fragevents/lib/gcache"
 	"github.com/go-redis/redis/v8"
+	"github.com/mailgun/groupcache/v2"
+	"github.com/ptdave20/donordrive"
 	"github.com/spf13/viper"
 )
 
 func (t *TeamMonitor) GetKey() string {
 	return fmt.Sprintf("%d", t.TeamID)
+}
+
+func (t *TeamMonitor) MonitorKey() string {
+	return t.MakeKey(t.GetKey())
+}
+
+func (t *TeamMonitor) TeamKafkaKey() []byte {
+	return []byte(t.MonitorKey())
 }
 
 //SetUpdateMonitoring turns on monitoring for team.active period
@@ -20,7 +32,7 @@ func (t *TeamMonitor) SetUpdateMonitoring(ctx context.Context) error {
 		return err
 	}
 
-	key := t.MakeKey(t.GetKey())
+	key := t.MonitorKey()
 
 	data, err := json.Marshal(t)
 	if err != nil {
@@ -94,4 +106,32 @@ func GetAllTeams(ctx context.Context) ([]*TeamMonitor, error) {
 	}
 
 	return ret, nil
+}
+
+func (t *TeamMonitor) GetTeam(ctx context.Context) (*donordrive.Team, []byte, error) {
+	log := df.Log
+	gca := gcache.GlobalCache()
+	teamGC, err := gca.GetGroupByName(gcache.GroupELTeam)
+	if err != nil {
+		log.WithError(err).Error("Problem getting gca group by name")
+		return nil, nil, err
+	}
+
+	log.Trace("Kicking off cache get/fill")
+	var data []byte
+	if err := teamGC.Get(ctx, t.GetKey(), groupcache.AllocatingByteSliceSink(&data)); err != nil {
+		log.WithError(err).Error("Couldn't get entry from team's group cache")
+		return nil, nil, err
+	}
+
+	log.Trace("Unmarshalling")
+	// While we could get away without this, let's be sure the schema is right - security :)
+	team := donordrive.Team{}
+	if err := json.Unmarshal(data, &team); err != nil {
+		log.WithError(err).Error("Couldn't unmarshal team")
+		return nil, nil, err
+	}
+	log = log.WithField("team.name", team.Name)
+
+	return &team, data, nil
 }

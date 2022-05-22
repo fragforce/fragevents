@@ -18,7 +18,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import (
-	"crypto/tls"
 	"github.com/fragforce/fragevents/lib/df"
 	"github.com/fragforce/fragevents/lib/tasks"
 	"github.com/hibiken/asynq"
@@ -33,14 +32,11 @@ var workerCmd = &cobra.Command{
 	Short: "Backend workers",
 	Run: func(cmd *cobra.Command, args []string) {
 		srv := asynq.NewServer(
-			buildRedisConn(),
+			df.BuildAsyncQRedis(),
 			asynq.Config{
 				Concurrency: viper.GetInt("asynq.workers"),
 			},
 		)
-
-		mux := asynq.NewServeMux()
-		mux.HandleFunc(tasks.TaskExtraLifeUpdate, tasks.HandleExtraLifeUpdateTask)
 
 		go func() {
 			if err := ginEngine.Run(viper.GetString("listen") + ":" + viper.GetString("port")); err != nil {
@@ -48,7 +44,7 @@ var workerCmd = &cobra.Command{
 			}
 		}()
 
-		if err := srv.Run(mux); err != nil {
+		if err := srv.Run(tasks.GetMux()); err != nil {
 			log.WithError(err).Fatal("Problem running asynq worker daemon")
 		}
 	},
@@ -65,25 +61,4 @@ func init() {
 	viper.SetDefault("asynq.workers", 32)
 	viper.SetDefault("groupcache.rdb", 2)
 	viper.SetDefault("groupcache.redis.retries", 6)
-}
-
-func buildRedisConn() asynq.RedisClientOpt {
-	parsedRedisURL, err := df.ParseRedisURL()
-	if err != nil {
-		log.WithError(err).Fatal("Problem getting parsed URL")
-	}
-	passwd, _ := parsedRedisURL.User.Password()
-
-	return asynq.RedisClientOpt{
-		Addr:         parsedRedisURL.Host,
-		Password:     passwd,
-		DB:           viper.GetInt("asynq.rdb"),
-		DialTimeout:  viper.GetDuration("redis.dialtimeout"),
-		ReadTimeout:  viper.GetDuration("redis.readtimeout"),
-		WriteTimeout: viper.GetDuration("redis.writetimeout"),
-		PoolSize:     viper.GetInt("redis.poolsize"),
-		TLSConfig: &tls.Config{
-			InsecureSkipVerify: true,
-		},
-	}
 }

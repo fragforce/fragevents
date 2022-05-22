@@ -13,6 +13,10 @@ func (t *ParticipantMonitor) GetKey() string {
 	return fmt.Sprintf("%d", t.ParticipantID)
 }
 
+func (t *ParticipantMonitor) MonitorKey() string {
+	return t.MakeKey(t.GetKey())
+}
+
 //SetUpdateMonitoring turns on monitoring for team.active period
 func (t *ParticipantMonitor) SetUpdateMonitoring(ctx context.Context) error {
 	rClient, err := GetRedisClient()
@@ -20,7 +24,7 @@ func (t *ParticipantMonitor) SetUpdateMonitoring(ctx context.Context) error {
 		return err
 	}
 
-	key := t.MakeKey(t.GetKey())
+	key := t.MonitorKey()
 
 	data, err := json.Marshal(t)
 	if err != nil {

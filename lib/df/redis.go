@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/go-redis/redis/v8"
+	"github.com/hibiken/asynq"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"net/url"
@@ -195,4 +196,27 @@ func ParseRedisURL() (*url.URL, error) {
 	}
 
 	return parsedRedisURL, nil
+}
+
+func BuildAsyncQRedis() asynq.RedisClientOpt {
+	log := Log
+
+	parsedRedisURL, err := ParseRedisURL()
+	if err != nil {
+		log.WithError(err).Fatal("Problem getting parsed URL")
+	}
+	passwd, _ := parsedRedisURL.User.Password()
+
+	return asynq.RedisClientOpt{
+		Addr:         parsedRedisURL.Host,
+		Password:     passwd,
+		DB:           viper.GetInt("asynq.rdb"),
+		DialTimeout:  viper.GetDuration("redis.dialtimeout"),
+		ReadTimeout:  viper.GetDuration("redis.readtimeout"),
+		WriteTimeout: viper.GetDuration("redis.writetimeout"),
+		PoolSize:     viper.GetInt("redis.poolsize"),
+		TLSConfig: &tls.Config{
+			InsecureSkipVerify: true,
+		},
+	}
 }
