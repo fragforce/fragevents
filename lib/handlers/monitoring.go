@@ -98,7 +98,7 @@ func RegisterType(c *gin.Context) {
 	rType := c.Param("rtype")
 	log := df.Log.WithFields(logrus.Fields{
 		"register.type": rType,
-	})
+	}).WithContext(c)
 
 	handlerF, ok := typeHandlers[rType]
 	if !ok {

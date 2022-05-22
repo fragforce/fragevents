@@ -96,3 +96,21 @@ func (c *SharedGCache) GetGroupByName(groupName string) (*groupcache.Group, erro
 
 	return grp, nil
 }
+
+//GetAllGroups returns a list of all groupcache groups
+func (c *SharedGCache) GetAllGroups() ([]*groupcache.Group, error) {
+	if !pendingDone {
+		return nil, ErrPendingGroupsNotCreated
+	}
+
+	gLock.Lock()
+	defer gLock.Unlock()
+
+	ret := make([]*groupcache.Group, len(groups))
+	idx := 0
+	for _, v := range groups {
+		ret[idx] = v
+		idx++
+	}
+	return ret, nil
+}

@@ -26,7 +26,7 @@ func GetTeam(c *gin.Context) {
 	teamID := c.Param("teamid")
 	log := df.Log.WithFields(logrus.Fields{
 		"team.id.str": teamID,
-	})
+	}).WithContext(c)
 
 	log.Trace("Setting up gca")
 	gca := gcache.GlobalCache()
@@ -66,7 +66,7 @@ func GetTeamParticipants(c *gin.Context) {
 	teamID := c.Param("teamid")
 	log := df.Log.WithFields(logrus.Fields{
 		"participants.id.str": teamID,
-	})
+	}).WithContext(c)
 
 	log.Trace("Setting up gca")
 	gca := gcache.GlobalCache()

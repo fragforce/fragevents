@@ -21,7 +21,7 @@ func GetParticipant(c *gin.Context) {
 	participantID := c.Param("participantid")
 	log := df.Log.WithFields(logrus.Fields{
 		"participant.id.str": participantID,
-	})
+	}).WithContext(c)
 
 	log.Trace("Setting up gca")
 	gca := gcache.GlobalCache()
