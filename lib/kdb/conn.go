@@ -115,6 +115,8 @@ func NewKafkaWriter(ctx context.Context, topic string) (writer *kafka.Writer, er
 		}
 		addrs = append(addrs, u.Host)
 	}
+	log = log.WithField("kafka.addrs", addrs)
+	log.Trace("Set kafka addrs")
 
 	writer = &kafka.Writer{
 		Addr:                   kafka.TCP(addrs...),
