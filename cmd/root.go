@@ -238,7 +238,7 @@ func initLogging() {
 	})
 
 	for k, v := range viper.GetStringMapString("runtime") {
-		if strings.Contains(strings.ToLower(k), "kafka") || strings.Contains(strings.ToLower(v), "certificate") {
+		if strings.Contains(strings.ToLower(k), "_cert") || strings.Contains(strings.ToLower(v), "certificate") {
 			// has cert data or kafka info
 			continue
 		}
