@@ -1,0 +1,16 @@
+POST https://fragevents-stage.herokuapp.com/v1/register/team/
+Content-Type: application/json
+
+{
+  "team-id": {{team-id}}
+}
+
+###
+POST https://fragevents-stage.herokuapp.com/v1/register/participant/
+Content-Type: application/json
+
+{
+"participant-id": {{participant-id}}
+}
+
+###

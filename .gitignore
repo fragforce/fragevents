@@ -18,3 +18,5 @@ vendor/
 .idea/
 *.iml
 
+# Block anywhere - used for Jetbrains http client testing
+http-client.private.env.json

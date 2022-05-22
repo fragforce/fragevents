@@ -1,0 +1,1 @@
+GET https://fragevents-stage.herokuapp.com/team/{{team-id}}/
