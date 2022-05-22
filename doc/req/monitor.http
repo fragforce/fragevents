@@ -2,7 +2,23 @@ POST https://fragevents-stage.herokuapp.com/v1/register/team/
 Content-Type: application/json
 
 {
-  "team-id": {{team-id}}
+  "team-id": {{team-id-0}}
+}
+
+###
+POST https://fragevents-stage.herokuapp.com/v1/register/team/
+Content-Type: application/json
+
+{
+  "team-id": {{team-id-1}}
+}
+
+###
+POST https://fragevents-stage.herokuapp.com/v1/register/team/
+Content-Type: application/json
+
+{
+  "team-id": {{team-id-2}}
 }
 
 ###
@@ -10,7 +26,23 @@ POST https://fragevents-stage.herokuapp.com/v1/register/participant/
 Content-Type: application/json
 
 {
-"participant-id": {{participant-id}}
+"participant-id": {{participant-id-0}}
+}
+
+###
+POST https://fragevents-stage.herokuapp.com/v1/register/participant/
+Content-Type: application/json
+
+{
+"participant-id": {{participant-id-1}}
+}
+
+###
+POST https://fragevents-stage.herokuapp.com/v1/register/participant/
+Content-Type: application/json
+
+{
+"participant-id": {{participant-id-2}}
 }
 
 ###
