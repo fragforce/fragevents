@@ -170,17 +170,47 @@ func (t *ParticipantMonitor) SetUpdateMonitoring(ctx context.Context) error {
 
 //AmMonitoring are we monitoring this id
 func (t *ParticipantMonitor) AmMonitoring(ctx context.Context) (bool, error) {
+	log := df.Log.WithField("participant.id", t.ParticipantID)
+
 	rClient, err := GetRedisClient()
 	if err != nil {
+		log.WithError(err).Error("Problem getting redis client")
 		return false, err
 	}
 
 	key := t.MakeKey(t.GetKey())
 	cnt, err := rClient.Exists(ctx, key).Result()
 	if err != nil {
+		log.WithError(err).Error("Problem checking if key exists for client monitoring")
 		return false, err
 	}
-	return cnt == 1, nil
+	if cnt == 1 {
+		log.Trace("Am monitoring (direct)")
+		return true, nil
+	}
+
+	// Check if we're monitored via team
+	p, err := t.GetParticipant(ctx)
+	if err != nil {
+		log.WithError(err).Error("Problem getting participant")
+		return false, err
+	}
+
+	if p.TeamId == 0 {
+		log.Trace("No team set - not tracked")
+		return false, nil
+	}
+
+	tm := NewTeamMonitor(p.TeamId)
+
+	amMon, err := tm.AmMonitoring(ctx)
+	if err != nil {
+		log.WithError(err).Error("Problem checking monitoring")
+		return false, err
+	}
+	log = log.WithField("team.monitoring", amMon)
+	log.Trace("Using results from team monitoring")
+	return amMon, nil
 }
 
 //GetAllParticipants returns a list of all monitored participants
