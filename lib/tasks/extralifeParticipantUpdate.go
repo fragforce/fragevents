@@ -64,11 +64,14 @@ func NewExtraLifeParticipantUpdateTask(participantID int) (*asynq.Task, error) {
 	if err != nil {
 		return nil, err
 	}
-	return asynq.NewTask(TaskExtraLifeTeamParticipantUpdate, payload, asynq.Timeout(time.Minute*20), asynq.MaxRetry(0)), nil
+	return asynq.NewTask(TaskExtraLifeParticipantUpdate, payload, asynq.Timeout(time.Minute*20), asynq.MaxRetry(0)), nil
 }
 
 func HandleExtraLifeParticipantUpdateTask(ctx context.Context, t *asynq.Task) error {
-	log := df.Log.WithField("task.type", t.Type()).WithContext(ctx)
+	log := df.Log.WithFields(logrus.Fields{
+		"task.type":      t.Type(),
+		"data.len.bytes": len(t.Payload()),
+	}).WithContext(ctx)
 	log.Trace("Doing participants participant update")
 
 	p := ELParticipantID{}
