@@ -21,4 +21,6 @@ const (
 	KHeaderKeyEventID   = "event-id"
 	KHeaderKeyEventName = "event-name"
 	KHeaderKeyFetchedAt = "fetched-at"
+	//	Text parser templates - Used as names for text/templates
+	TextTemplateNameTeamMonitor = "team-monitor-template"
 )

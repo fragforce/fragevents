@@ -1,6 +1,7 @@
 package mondb
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -10,8 +11,21 @@ import (
 	"github.com/go-redis/redis/v8"
 	"github.com/mailgun/groupcache/v2"
 	"github.com/segmentio/kafka-go"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"text/template"
 )
+
+func init() {
+	viper.SetDefault("team.monitor.template", `BEGIN
+Team-ID: {{ .TeamID }}
+Team-Name: {{ .Name }}
+Event-ID: {{ .EventID }}
+Event-Name: {{ .EventName }}
+
+Team: {{ .Team }}
+END`)
+}
 
 func (t *TeamMonitor) GetKey() string {
 	return fmt.Sprintf("%d", t.TeamID)
@@ -22,8 +36,27 @@ func (t *TeamMonitor) MonitorKey() string {
 }
 
 //TeamKafkaKey are used in kafka for identity
-func (t *TeamMonitor) TeamKafkaKey(team *df.CachedTeam) []byte {
-	return []byte(t.MakeKey(t.GetKey(), team.GetFetchedAt()))
+func (t *TeamMonitor) TeamKafkaKey(team *df.CachedTeam) ([]byte, error) {
+	log := df.Log.WithFields(logrus.Fields{
+		"team.id":      team.TeamID,
+		"team.name":    team.Name,
+		"event.id":     team.EventID,
+		"event.name":   team.EventName,
+		"last-refresh": team.GetFetchedAt(),
+	})
+
+	tplate, err := template.New(df.TextTemplateNameTeamMonitor).Parse(viper.GetString("team.monitor.template"))
+	if err != nil {
+		log.WithError(err).Error("Problem parsing team monitor template")
+		return nil, err
+	}
+
+	bf := new(bytes.Buffer)
+	if err := tplate.Execute(bf, team); err != nil {
+		log.WithError(err).Error("Problem executing team monitor template")
+		return nil, err
+	}
+	return bf.Bytes(), nil
 }
 
 //TeamKafkaHeaders are used in kafka for info, routing, and debugging
@@ -61,14 +94,18 @@ func (t *TeamMonitor) TeamKafkaHeaders(team *df.CachedTeam) []kafka.Header {
 }
 
 //MakeTeamMessage creates the kafka message(s) for the given team
-func (t *TeamMonitor) MakeTeamMessage(team *df.CachedTeam) []kafka.Message {
+func (t *TeamMonitor) MakeTeamMessage(team *df.CachedTeam) ([]kafka.Message, error) {
+	key, err := t.TeamKafkaKey(team)
+	if err != nil {
+		return nil, err
+	}
 	return []kafka.Message{
 		{
-			Key:     t.TeamKafkaKey(team),
+			Key:     key,
 			Value:   team.RawData,
 			Headers: t.TeamKafkaHeaders(team),
 		},
-	}
+	}, nil
 }
 
 //SetUpdateMonitoring turns on monitoring for team.active period

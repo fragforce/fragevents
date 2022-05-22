@@ -64,7 +64,13 @@ func HandleExtraLifeTeamUpdateTask(ctx context.Context, t *asynq.Task) error {
 		log.WithError(err).Error("Problem getting kafka writer for teams")
 		return err
 	}
-	msgs := tm.MakeTeamMessage(team)
+
+	msgs, err := tm.MakeTeamMessage(team)
+	if err != nil {
+		log.WithError(err).Error("Problem making kafka message(s)")
+		return err
+	}
+
 	if err := kWriteTeams.WriteMessages(
 		ctx,
 		msgs...,
