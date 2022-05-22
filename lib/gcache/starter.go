@@ -133,6 +133,7 @@ func (c *SharedGCache) doPeerUpdateLoop() {
 }
 
 func (c *SharedGCache) fetchPeers() ([]string, error) {
+	peerDebug := viper.GetBool("debug.peers") && viper.GetBool("debug")
 	log := c.log.WithFields(logrus.Fields{
 		"peers.key":    viper.GetString("groupcache.peers.key"),
 		"peers.my.uri": c.myURI,
@@ -143,7 +144,9 @@ func (c *SharedGCache) fetchPeers() ([]string, error) {
 		return res, err
 	}
 	log = log.WithField("peers.pre", res)
-	log.Trace("Fetched the groupcache peer list from redis")
+	if peerDebug {
+		log.Trace("Fetched the groupcache peer list from redis")
+	}
 
 	// Won't help current but will help next time
 	for _, peer := range res {
