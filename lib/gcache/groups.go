@@ -51,13 +51,15 @@ func (c *SharedGCache) initPendingGroupF() {
 
 //registerGroupF called from init to create+register groupcache create functions
 func registerGroupF(groupName string, defaultCacheSizeMB int64, groupGetterF GroupGetterFunc) {
-	if defaultCacheSizeMB == 0 {
+	if defaultCacheSizeMB <= 0 {
 		defaultCacheSizeMB = 16
 	}
 	cacheSizeKey := fmt.Sprintf("group.%s.bytes", groupName)
 	viper.SetDefault(cacheSizeKey, 1024*1024*defaultCacheSizeMB)
 
 	err := RegisterPendingGroup(func(log *logrus.Entry, sgc *SharedGCache) *groupcache.Group {
+		log = log.WithField("cache.size.bytes", viper.GetInt64(cacheSizeKey))
+		log.Trace("Creating new group")
 		return groupcache.NewGroup(
 			groupName,
 			viper.GetInt64(cacheSizeKey),
