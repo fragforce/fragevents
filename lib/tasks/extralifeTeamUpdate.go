@@ -49,7 +49,7 @@ func HandleExtraLifeTeamUpdateTask(ctx context.Context, t *asynq.Task) error {
 	log := df.Log.WithField("task.type", t.Type()).WithContext(ctx)
 	log.Trace("Doing team update")
 
-	var p ELTeamID
+	p := ELTeamID{}
 	if err := json.Unmarshal(t.Payload(), &p); err != nil {
 		log.WithError(err).Error("Problem unmarshalling payload")
 		return err
@@ -221,7 +221,7 @@ func HandleExtraLifeTeamUpdateParticipantTask(ctx context.Context, t *asynq.Task
 	log.Trace("Doing participants participant update")
 	aClient := df.GetAsyncQClient()
 
-	var p ELTeamID
+	p := ELTeamID{}
 	if err := json.Unmarshal(t.Payload(), &p); err != nil {
 		log.WithError(err).Error("Problem unmarshalling payload")
 		return err

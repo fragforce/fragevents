@@ -71,7 +71,7 @@ func HandleExtraLifeParticipantUpdateTask(ctx context.Context, t *asynq.Task) er
 	log := df.Log.WithField("task.type", t.Type()).WithContext(ctx)
 	log.Trace("Doing participants participant update")
 
-	var p ELParticipantID
+	p := ELParticipantID{}
 	if err := json.Unmarshal(t.Payload(), &p); err != nil {
 		log.WithError(err).Error("Problem unmarshalling payload")
 		return err
