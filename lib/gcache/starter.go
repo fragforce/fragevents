@@ -15,7 +15,7 @@ import (
 
 const (
 	InsecureToken = "INSECURE"
-	TokenKey      = "Bearer"
+	TokenKey      = "Authorization"
 )
 
 type SecuredHeaderTransport struct {
@@ -30,7 +30,7 @@ func init() {
 }
 
 func (ct *SecuredHeaderTransport) RoundTrip(req *http.Request) (*http.Response, error) {
-	req.Header.Add(TokenKey, ct.Token)
+	req.Header.Add(TokenKey, fmt.Sprintf("Bearer %s", ct.Token))
 	return ct.RoundTripper.RoundTrip(req)
 }
 
@@ -98,18 +98,68 @@ func (c *SharedGCache) fetchPeers() ([]string, error) {
 		log.WithError(err).Error("Problem fetching the groupcache peer list")
 		return res, err
 	}
-	log = log.WithField("peers", res)
-	log.Trace("Fetched the groupcache peer list")
+	log = log.WithField("peers.pre", res)
+	log.Trace("Fetched the groupcache peer list from redis")
+
+	// Won't help current but will help next time
+	for _, peer := range res {
+		go c.checkPeer(log, peer)
+	}
+
 	return res, nil
+}
+
+//checkPeer checks if the given peer is up. If not, removes it from redis.
+func (c *SharedGCache) checkPeer(log *logrus.Entry, uri string) {
+	log = log.WithField("peer.uri", uri)
+	log.Trace("Going to check peer")
+
+	client := http.Client{}
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/alive", uri), nil)
+	if err != nil {
+		log.WithError(err).Error("Problem creating request - Removing")
+		if err := c.removePeer(uri); err != nil {
+			log.WithError(err).Error("Error removing peer from peer list in redis")
+		}
+		return
+	}
+
+	req.Header = http.Header{
+		"Content-Type":  {"application/json"},
+		"Authorization": {fmt.Sprintf("Bearer %s", viper.GetString("groupcache.token"))},
+	}
+
+	res, err := client.Do(req)
+	if err != nil {
+		log.WithError(err).Info("Problem running request - Removing")
+		if err := c.removePeer(uri); err != nil {
+			log.WithError(err).Info("Error removing peer from peer list in redis")
+		}
+		return
+	}
+	if res.StatusCode == 200 {
+		log.Trace("Done checking peer - it's ok")
+		return
+	}
+	log.WithField("status.code", res.StatusCode).Info("Problem with status code")
+	if err := c.removePeer(uri); err != nil {
+		log.WithError(err).Info("Error removing peer from peer list in redis")
+	}
+	return
 }
 
 //removeMyPeer removes ourselves from the redis based peer list
 func (c *SharedGCache) removeMyPeer() error {
+	return c.removePeer(c.myURI)
+}
+
+//removePeer removes a peer from the redis based peer list
+func (c *SharedGCache) removePeer(peerURI string) error {
 	log := c.log.WithFields(logrus.Fields{
-		"peers.key":    viper.GetString("groupcache.peers.key"),
-		"peers.my.uri": c.myURI,
+		"peers.key": viper.GetString("groupcache.peers.key"),
+		"peers.uri": peerURI,
 	})
-	if _, err := c.rClient.SRem(context.Background(), viper.GetString("groupcache.peers.key"), c.myURI).Result(); err != nil {
+	if _, err := c.rClient.SRem(context.Background(), viper.GetString("groupcache.peers.key"), peerURI).Result(); err != nil {
 		log.WithError(err).Error("Problem removing ourself from the groupcache peer list")
 		return err
 	}
@@ -174,7 +224,7 @@ func (c *SharedGCache) StartRun(r *gin.Engine) error {
 
 //GroupCacheHandler register via gin to "/_groupcache/"
 func (c *SharedGCache) GroupCacheHandler(ctx *gin.Context) {
-	if strings.TrimLeft(ctx.GetHeader(TokenKey), "Token ") != viper.GetString("groupcache.token") {
+	if strings.TrimLeft(ctx.GetHeader(TokenKey), "Bearer ") != viper.GetString("groupcache.token") {
 		// FIXME: Standardize error json
 		// FIXME: Add logging
 
