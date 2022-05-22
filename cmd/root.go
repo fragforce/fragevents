@@ -192,17 +192,12 @@ func initConfig() {
 		"KAFKA_URL",
 		"KAFKA_PREFIX",
 	} {
-		log := log.WithField("runtime.env-var", e)
-
 		// Remove all toWipe strings
 		s := strings.ToLower(e)
 		for _, str := range toWipe {
 			s = strings.ReplaceAll(s, strings.ToLower(str), "")
 		}
-
 		k := fmt.Sprintf("runtime.%v", s)
-		log = log.WithField("runtime.key", k)
-
 		v := os.Getenv(e)
 		if v != "" {
 			viper.Set(k, v)
