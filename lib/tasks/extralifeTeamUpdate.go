@@ -3,6 +3,7 @@ package tasks
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"github.com/fragforce/fragevents/lib/df"
 	"github.com/fragforce/fragevents/lib/kdb"
 	"github.com/fragforce/fragevents/lib/mondb"
@@ -27,9 +28,17 @@ type ELParticipantID struct {
 	ParticipantID int
 }
 
+var (
+	ErrInvalidID = errors.New("invalid id")
+)
+
 //NewExtraLifeTeamUpdateTask runs an update check for the given monitored team
-func NewExtraLifeTeamUpdateTask(teamId int) (*asynq.Task, error) {
-	payload, err := json.Marshal(ELTeamID{TeamID: teamId})
+func NewExtraLifeTeamUpdateTask(teamID int) (*asynq.Task, error) {
+	if teamID == 0 {
+		return nil, ErrInvalidID
+	}
+
+	payload, err := json.Marshal(ELTeamID{TeamID: teamID})
 	if err != nil {
 		return nil, err
 	}
@@ -48,6 +57,11 @@ func HandleExtraLifeTeamUpdateTask(ctx context.Context, t *asynq.Task) error {
 	log = log.WithFields(logrus.Fields{
 		"team.id": p.TeamID,
 	})
+
+	if p.TeamID == 0 {
+		log.WithError(ErrInvalidID).Info("Invalid team id")
+		return ErrInvalidID
+	}
 
 	// TODO: Maybe move this into TeamMonitor...?
 	tm := mondb.NewTeamMonitor(p.TeamID)
@@ -185,6 +199,9 @@ func HandleExtraLifeTeamsUpdateTask(ctx context.Context, t *asynq.Task) error {
 
 //NewExtraLifeTeamUpdateParticipantTask runs an update check for the given monitored team - Runs over participants
 func NewExtraLifeTeamUpdateParticipantTask(teamID int) (*asynq.Task, error) {
+	if teamID == 0 {
+		return nil, ErrInvalidID
+	}
 	payload, err := json.Marshal(ELTeamID{TeamID: teamID})
 	if err != nil {
 		return nil, err
@@ -205,6 +222,11 @@ func HandleExtraLifeTeamUpdateParticipantTask(ctx context.Context, t *asynq.Task
 	log = log.WithFields(logrus.Fields{
 		"team.id": p.TeamID,
 	})
+
+	if p.TeamID == 0 {
+		log.WithError(ErrInvalidID).Info("Invalid team id")
+		return ErrInvalidID
+	}
 
 	// TODO: Maybe move this into TeamMonitor...?
 	tm := mondb.NewTeamMonitor(p.TeamID)
@@ -244,49 +266,5 @@ func HandleExtraLifeTeamUpdateParticipantTask(ctx context.Context, t *asynq.Task
 	}
 
 	log.Trace("Done with participants update")
-	return nil
-}
-
-//NewExtraLifeParticipantUpdateTask runs an update check for the given monitored participant
-func NewExtraLifeParticipantUpdateTask(participantID int) (*asynq.Task, error) {
-	payload, err := json.Marshal(ELParticipantID{ParticipantID: participantID})
-	if err != nil {
-		return nil, err
-	}
-	return asynq.NewTask(TaskExtraLifeTeamParticipantUpdate, payload, asynq.Timeout(time.Minute*20), asynq.MaxRetry(0)), nil
-}
-
-func HandleExtraLifeParticipantUpdateTask(ctx context.Context, t *asynq.Task) error {
-	log := df.Log.WithField("task.type", t.Type()).WithContext(ctx)
-	log.Trace("Doing participants participant update")
-
-	var p ELParticipantID
-	if err := json.Unmarshal(t.Payload(), &p); err != nil {
-		log.WithError(err).Error("Problem unmarshalling payload")
-		return err
-	}
-	log = log.WithFields(logrus.Fields{
-		"participants.id": p.ParticipantID,
-	})
-
-	tm := mondb.NewParticipantMonitor(p.ParticipantID)
-
-	log.Trace("Checking monitoring")
-	amMon, err := tm.AmMonitoring(ctx)
-	if err != nil {
-		log.WithError(err).Error("Problem checking if monitored")
-		return err
-	}
-	log = log.WithField("participants.monitoring", amMon)
-	if !amMon {
-		log.Debug("Not monitored anymore - skipping update")
-		return nil
-	}
-
-	if err := tm.WriteParticipantToKafka(ctx); err != nil {
-		log.WithError(err).Error("Problem writing to kafka")
-		return err
-	}
-
 	return nil
 }
