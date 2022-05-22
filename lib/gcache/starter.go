@@ -21,6 +21,7 @@ const (
 type SecuredHeaderTransport struct {
 	http.RoundTripper
 	Token string
+	Ctx   context.Context
 }
 
 func init() {
@@ -33,7 +34,7 @@ func init() {
 
 func (ct *SecuredHeaderTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	req.Header.Add(TokenKey, fmt.Sprintf("Bearer %s", ct.Token))
-	return ct.RoundTripper.RoundTrip(req)
+	return ct.RoundTripper.RoundTrip(req.WithContext(ct.Ctx))
 }
 
 //GetPool returns pool to register to "/_groupcache/" web handler
@@ -77,6 +78,7 @@ func (c *SharedGCache) createPool() error {
 			return &SecuredHeaderTransport{
 				RoundTripper: http.DefaultTransport,
 				Token:        viper.GetString("groupcache.token"),
+				Ctx:          ctx,
 			}
 		},
 	})
