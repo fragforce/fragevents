@@ -8,6 +8,7 @@ import (
 	"github.com/fragforce/fragevents/lib/mondb"
 	"github.com/hibiken/asynq"
 	"github.com/sirupsen/logrus"
+	"time"
 )
 
 const (
@@ -86,9 +87,10 @@ func HandleExtraLifeTeamUpdateTask(ctx context.Context, t *asynq.Task) error {
 		log.WithError(err).Error("Problem making kafka message(s)")
 		return err
 	}
-
+	c1, can1 := context.WithTimeout(ctx, time.Second*120)
+	defer can1()
 	if err := kWriteTeams.WriteMessages(
-		ctx,
+		c1,
 		msgs...,
 	); err != nil {
 		log.WithError(err).Error("Problem writing messages to kafka team topic")
@@ -108,9 +110,10 @@ func HandleExtraLifeTeamUpdateTask(ctx context.Context, t *asynq.Task) error {
 		log.WithError(err).Error("Problem making kafka message(s)")
 		return err
 	}
-
+	c2, can2 := context.WithTimeout(ctx, time.Second*120)
+	defer can2()
 	if err := kWriteEvents.WriteMessages(
-		ctx,
+		c2,
 		msgs...,
 	); err != nil {
 		log.WithError(err).Error("Problem writing messages to kafka events topic")
