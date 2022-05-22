@@ -7,7 +7,6 @@ import (
 	"github.com/fragforce/fragevents/lib/kdb"
 	"github.com/fragforce/fragevents/lib/mondb"
 	"github.com/hibiken/asynq"
-	"github.com/segmentio/kafka-go"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
@@ -51,7 +50,7 @@ func HandleExtraLifeTeamUpdateTask(ctx context.Context, t *asynq.Task) error {
 		return nil
 	}
 
-	team, teamData, err := tm.GetTeam(ctx)
+	team, err := tm.GetTeam(ctx)
 	if err != nil {
 		log.WithError(err).Error("Problem getting team from gca")
 		return err
@@ -64,14 +63,10 @@ func HandleExtraLifeTeamUpdateTask(ctx context.Context, t *asynq.Task) error {
 		log.WithError(err).Error("Problem getting kafka writer for teams")
 		return err
 	}
-
+	msgs := tm.MakeTeamMessage(team)
 	if err := kWriteTeams.WriteMessages(
 		ctx,
-		kafka.Message{
-			Key:     tm.TeamKafkaKey(&team.FetchedAt),
-			Value:   teamData,
-			Headers: nil,
-		},
+		msgs...,
 	); err != nil {
 		log.WithError(err).Error("Problem writing messages to kafka team topic")
 		return err
