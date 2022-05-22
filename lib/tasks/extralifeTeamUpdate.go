@@ -26,7 +26,7 @@ func NewExtraLifeTeamUpdateTask(teamId int) (*asynq.Task, error) {
 	if err != nil {
 		return nil, err
 	}
-	return asynq.NewTask(TaskExtraLifeTeamUpdate, payload), nil
+	return asynq.NewTask(TaskExtraLifeTeamUpdate, payload, asynq.MaxRetry(0)), nil
 }
 
 func HandleExtraLifeTeamUpdateTask(ctx context.Context, t *asynq.Task) error {
@@ -122,7 +122,7 @@ func HandleExtraLifeTeamUpdateTask(ctx context.Context, t *asynq.Task) error {
 
 //NewExtraLifeTeamsUpdateTask runs an update check of all monitored teams
 func NewExtraLifeTeamsUpdateTask() *asynq.Task {
-	return asynq.NewTask(TaskExtraLifeTeamsUpdate, nil)
+	return asynq.NewTask(TaskExtraLifeTeamsUpdate, nil, asynq.MaxRetry(0))
 }
 
 func HandleExtraLifeTeamsUpdateTask(ctx context.Context, t *asynq.Task) error {
@@ -134,6 +134,7 @@ func HandleExtraLifeTeamsUpdateTask(ctx context.Context, t *asynq.Task) error {
 		log.WithError(err).Error("Problem getting all teams")
 		return err
 	}
+	log = log.WithField("teams.count", len(teamMonitors))
 
 	for _, teamMonitor := range teamMonitors {
 		log := log.WithFields(logrus.Fields{
@@ -145,7 +146,7 @@ func HandleExtraLifeTeamsUpdateTask(ctx context.Context, t *asynq.Task) error {
 			log.WithError(err).Error("Problem creating team update task")
 			return err
 		}
-		tInfo, err := aClient.Enqueue(task, asynq.MaxRetry(1))
+		tInfo, err := aClient.Enqueue(task)
 		if err != nil {
 			log.WithError(err).Error("Problem enqueuing task")
 			return err
