@@ -9,5 +9,6 @@ func GetMux() *asynq.ServeMux {
 	mux.HandleFunc(TaskExtraLifeParticipantUpdate, HandleExtraLifeParticipantUpdateTask)
 	mux.HandleFunc(TaskExtraLifeTeamParticipantUpdate, HandleExtraLifeTeamUpdateParticipantTask)
 	mux.HandleFunc(TaskExtraLifeTeamsUpdate, HandleExtraLifeTeamsUpdateTask)
+	mux.HandleFunc(TaskExtraLifeParticipantsUpdate, HandleExtraLifeParticipantsUpdateTask)
 	return mux
 }

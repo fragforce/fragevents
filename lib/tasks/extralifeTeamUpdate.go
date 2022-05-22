@@ -16,6 +16,7 @@ const (
 	TaskExtraLifeTeamParticipantUpdate = "extralife:team_participant_update"
 	TaskExtraLifeParticipantUpdate     = "extralife:participant_update"
 	TaskExtraLifeTeamsUpdate           = "extralife:teams_update"
+	TaskExtraLifeParticipantsUpdate    = "extralife:participants_update"
 )
 
 type ELTeamID struct {
