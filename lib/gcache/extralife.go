@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/fragforce/fragevents/lib/df"
-	"github.com/mailgun/groupcache/v2"
 	"github.com/ptdave20/donordrive"
 	"github.com/sirupsen/logrus"
 	"strconv"
@@ -25,11 +24,11 @@ func init() {
 	registerGroupF(GroupELParticipantForTeam, 256, participantsForTeamGroup)
 }
 
-func teamGroup(ctx context.Context, log *logrus.Entry, sgc *SharedGCache, key string, dest groupcache.Sink) error {
+func teamGroup(ctx context.Context, log *logrus.Entry, sgc *SharedGCache, key string) ([]byte, error) {
 	teamID, err := strconv.ParseInt(key, 10, 32)
 	if err != nil {
 		log.WithError(err).Error("Problem converting team id from str to int")
-		return err
+		return nil, err
 	}
 	log = log.WithField("team.id", teamID)
 
@@ -37,7 +36,7 @@ func teamGroup(ctx context.Context, log *logrus.Entry, sgc *SharedGCache, key st
 	team, err := donordrive.GetTeam(int(teamID)) // Need int not int64
 	if err != nil {
 		log.WithError(err).Error("Problem fetching team")
-		return err
+		return nil, err
 	}
 	log = log.WithField("team.name", team.Name)
 	log.Warn("Got team from extra-life")
@@ -49,18 +48,18 @@ func teamGroup(ctx context.Context, log *logrus.Entry, sgc *SharedGCache, key st
 	res, err := json.Marshal(&cTeam)
 	if err != nil {
 		log.WithError(err).Error("Problem marshaling team into json")
-		return err
+		return nil, err
 	}
 	log.Warn("Done")
 	// FIXME: Dynamic timeout and/or viper based
-	return dest.SetBytes(res, time.Now().Add(time.Minute*5))
+	return res, nil
 }
 
-func participantsForTeamGroup(ctx context.Context, log *logrus.Entry, sgc *SharedGCache, key string, dest groupcache.Sink) error {
+func participantsForTeamGroup(ctx context.Context, log *logrus.Entry, sgc *SharedGCache, key string) ([]byte, error) {
 	teamID, err := strconv.ParseInt(key, 10, 32)
 	if err != nil {
 		log.WithError(err).Error("Problem converting team id from str to int")
-		return err
+		return nil, err
 	}
 	log = log.WithField("team.id", teamID)
 
@@ -68,7 +67,7 @@ func participantsForTeamGroup(ctx context.Context, log *logrus.Entry, sgc *Share
 	tps, err := donordrive.GetTeamParticipants(int(teamID)) // Need int not int64
 	if err != nil {
 		log.WithError(err).Error("Problem fetching team participants")
-		return err
+		return nil, err
 	}
 	log = log.WithField("participants.count", len(tps))
 	log.Warn("Got team participants from extra-life")
@@ -81,18 +80,18 @@ func participantsForTeamGroup(ctx context.Context, log *logrus.Entry, sgc *Share
 	res, err := json.Marshal(&cTeam)
 	if err != nil {
 		log.WithError(err).Error("Problem marshaling participants team into json")
-		return err
+		return nil, err
 	}
 	log.Warn("Done")
 	// FIXME: Dynamic timeout and/or viper based
-	return dest.SetBytes(res, time.Now().Add(time.Minute*10))
+	return res, nil
 }
 
-func participantGroup(ctx context.Context, log *logrus.Entry, sgc *SharedGCache, key string, dest groupcache.Sink) error {
+func participantGroup(ctx context.Context, log *logrus.Entry, sgc *SharedGCache, key string) ([]byte, error) {
 	participantID, err := strconv.ParseInt(key, 10, 32)
 	if err != nil {
 		log.WithError(err).Error("Problem converting participant id from str to int")
-		return err
+		return nil, err
 	}
 	log = log.WithField("participant.id", participantID)
 
@@ -100,7 +99,7 @@ func participantGroup(ctx context.Context, log *logrus.Entry, sgc *SharedGCache,
 	participant, err := donordrive.GetParticipantDetails(int(participantID)) // Need int not int64
 	if err != nil {
 		log.WithError(err).Error("Problem fetching participant")
-		return err
+		return nil, err
 	}
 	log = log.WithField("participants.name.display", participant.DisplayName)
 	log.Warn("Got participant details from extra-life")
@@ -112,9 +111,9 @@ func participantGroup(ctx context.Context, log *logrus.Entry, sgc *SharedGCache,
 	res, err := json.Marshal(&cTeam)
 	if err != nil {
 		log.WithError(err).Error("Problem marshaling participants team into json")
-		return err
+		return nil, err
 	}
 	log.Warn("Done")
 	// FIXME: Dynamic timeout and/or viper based
-	return dest.SetBytes(res, time.Now().Add(time.Minute*5))
+	return res, nil
 }

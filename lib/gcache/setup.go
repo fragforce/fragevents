@@ -22,7 +22,7 @@ type SharedGCache struct {
 }
 
 type GroupFunc func(log *logrus.Entry, sgc *SharedGCache) *groupcache.Group
-type GroupGetterFunc func(ctx context.Context, log *logrus.Entry, sgc *SharedGCache, key string, dest groupcache.Sink) error
+type GroupGetterFunc func(ctx context.Context, log *logrus.Entry, sgc *SharedGCache, key string) ([]byte, error)
 
 var (
 	cache                      *SharedGCache
