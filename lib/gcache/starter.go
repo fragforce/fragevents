@@ -292,7 +292,7 @@ func (c *SharedGCache) StartRunPrep() error {
 	}
 
 	handler_global.RegisterGlobalHandlers(ginEngine)
-	// After
+	// After main handlers since it
 	ginEngine.Any("/_groupcache/*", c.GroupCacheHandler)
 
 	// Add ourselves to the global list of groupcache URLs
