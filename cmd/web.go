@@ -32,6 +32,7 @@ var webCmd = &cobra.Command{
 		// Add handlers
 		handler_reg.RegisterHandlers(ginEngine)
 
+		// FIXME: Split these out
 		go func() {
 			if err := ginEngine.Run(fmt.Sprintf("%s:%d", viper.GetString("listen"), viper.GetInt("port")+1)); err != nil {
 				log.WithError(err).Fatal("Problem running GIN")
