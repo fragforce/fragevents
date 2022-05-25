@@ -282,7 +282,7 @@ func (c *SharedGCache) StartRunPrep(r *gin.Engine) error {
 	log := c.log
 
 	// Add handlers
-	r.Any("/_groupcache", c.GroupCacheHandler)
+	r.Any("/_groupcache/", c.GroupCacheHandler)
 
 	// Add ourselves to the global list of groupcache URLs
 	if err := c.addMyPeer(); err != nil {
