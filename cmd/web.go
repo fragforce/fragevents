@@ -18,6 +18,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import (
+	"fmt"
 	"github.com/fragforce/fragevents/lib/handler_reg"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -30,6 +31,12 @@ var webCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		// Add handlers
 		handler_reg.RegisterHandlers(ginEngine)
+
+		go func() {
+			if err := ginEngine.Run(fmt.Sprintf("%s:%d", viper.GetString("listen"), viper.GetInt("port")+1)); err != nil {
+				log.WithError(err).Fatal("Problem running GIN")
+			}
+		}()
 
 		if err := ginEngine.Run(viper.GetString("listen") + ":" + viper.GetString("port")); err != nil {
 			log.WithError(err).Fatal("Problem running GIN")
