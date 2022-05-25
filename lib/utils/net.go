@@ -37,6 +37,10 @@ func GetLocalIP() (string, error) { // https://stackoverflow.com/questions/23558
 	return os.Getenv("HEROKU_PRIVATE_IP"), nil
 }
 
+func GetLocalNodeFQDN() (string, error) { // https://devcenter.heroku.com/articles/dyno-dns-service-discovery
+	return os.Getenv("HEROKU_DNS_DYNO_NAME"), nil
+}
+
 //GetExternalIP uses an external website to fetch our WAN IP
 func GetExternalIP(ctx context.Context) (string, error) {
 	req, err := http.NewRequestWithContext(ctx, "GET", viper.GetString("wan.iplookup"), nil)

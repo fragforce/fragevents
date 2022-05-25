@@ -57,7 +57,7 @@ func (c *SharedGCache) createPool() error {
 	//ctx, canc := context.WithTimeout(context.Background(), viper.GetDuration("groupcache.wan.timeout"))
 	//defer canc()
 	//myIP, err := utils.GetExternalIP(ctx)
-	myIP, err := utils.GetLocalIP()
+	myIP, err := utils.GetLocalNodeFQDN()
 	if err != nil {
 		log.WithError(err).Error("Problem getting interface ip")
 		return err
