@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
+	"strings"
 )
 
 type WanIP34 struct {
@@ -27,7 +28,7 @@ func GetLocalIP() (string, error) { // https://stackoverflow.com/questions/23558
 	}
 	for _, address := range addrs {
 		// check the address type and if it is not a loopback the display it
-		if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+		if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() && strings.HasPrefix(address.String(), "10.") {
 			if ipnet.IP.To4() != nil {
 				return ipnet.IP.String(), nil
 			}
