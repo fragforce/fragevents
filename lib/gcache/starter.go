@@ -35,8 +35,8 @@ func init() {
 	viper.SetDefault("groupcache.peers.key", "peers")
 	viper.SetDefault("groupcache.peer.update", time.Second*10)
 	viper.SetDefault("groupcache.wan.timeout", time.Second*5)
-	viper.SetDefault("peer.failed.sleep", time.Second*15) // How long to sleep between peer checks
-	viper.SetDefault("peer.failed.count", 10)             // How many checks must fail before a peer is removed
+	viper.SetDefault("peer.failed.sleep", time.Second*5) // How long to sleep between peer checks
+	viper.SetDefault("peer.failed.count", 3)             // How many checks must fail before a peer is removed
 }
 
 func (ct *SecuredHeaderTransport) RoundTrip(req *http.Request) (*http.Response, error) {
