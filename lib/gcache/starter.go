@@ -285,8 +285,6 @@ func (c *SharedGCache) StartRunPrep() error {
 	log.Info("Setting up GIN")
 	ginEngine := gin.Default()
 
-	ginEngine.Any("/_groupcache/*", c.GroupCacheHandler)
-
 	if !viper.GetBool("debug") {
 		gin.SetMode(gin.ReleaseMode)
 	} else {
@@ -294,6 +292,8 @@ func (c *SharedGCache) StartRunPrep() error {
 	}
 
 	handler_global.RegisterGlobalHandlers(ginEngine)
+	// After
+	ginEngine.Any("/_groupcache/*", c.GroupCacheHandler)
 
 	// Add ourselves to the global list of groupcache URLs
 	if err := c.addMyPeer(); err != nil {
