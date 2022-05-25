@@ -17,3 +17,5 @@ Extra-Life Events Stream
     1) Max out retention time up to 14d for prod
 7) Set config CFG_GROUPCACHE_TOKEN to a random string of alpha-num between 32 and 128 chars
 8) Needs to be in a private space
+9) Enable dns discovery
+   `heroku features:enable spaces-dns-discovery --app` 
