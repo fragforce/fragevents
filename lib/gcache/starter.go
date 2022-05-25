@@ -54,9 +54,10 @@ func (c *SharedGCache) GetPool() *groupcache.HTTPPool {
 func (c *SharedGCache) createPool() error {
 	log := c.log
 
-	ctx, canc := context.WithTimeout(context.Background(), viper.GetDuration("groupcache.wan.timeout"))
-	defer canc()
-	myIP, err := utils.GetExternalIP(ctx)
+	//ctx, canc := context.WithTimeout(context.Background(), viper.GetDuration("groupcache.wan.timeout"))
+	//defer canc()
+	//myIP, err := utils.GetExternalIP(ctx)
+	myIP, err := utils.GetLocalIP()
 	if err != nil {
 		log.WithError(err).Error("Problem getting interface ip")
 		return err
