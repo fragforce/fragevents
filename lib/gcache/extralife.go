@@ -20,9 +20,9 @@ const (
 func init() {
 	donordrive.SetBaseUrl(donordrive.ExtraLifeUrl)
 	doCheckInits()
-	registerGroupF(GroupELTeam, 64, teamGroup)
-	registerGroupF(GroupELParticipants, 64, participantGroup)
-	registerGroupF(GroupELParticipantForTeam, 64, participantsForTeamGroup)
+	registerGroupF(GroupELTeam, 256, teamGroup)
+	registerGroupF(GroupELParticipants, 256, participantGroup)
+	registerGroupF(GroupELParticipantForTeam, 256, participantsForTeamGroup)
 }
 
 func teamGroup(ctx context.Context, log *logrus.Entry, sgc *SharedGCache, key string, dest groupcache.Sink) error {
