@@ -1,4 +1,4 @@
-POST https://staging.fragevents.com/v1/register/team/
+POST https://{{fqdn}}/v1/register/team/
 Content-Type: application/json
 
 {
@@ -6,7 +6,7 @@ Content-Type: application/json
 }
 
 ###
-POST https://staging.fragevents.com/v1/register/team/
+POST https://{{fqdn}}/v1/register/team/
 Content-Type: application/json
 
 {
@@ -14,7 +14,7 @@ Content-Type: application/json
 }
 
 ###
-POST https://staging.fragevents.com/v1/register/team/
+POST https://{{fqdn}}/v1/register/team/
 Content-Type: application/json
 
 {
@@ -22,7 +22,7 @@ Content-Type: application/json
 }
 
 ###
-POST https://staging.fragevents.com/v1/register/participant/
+POST https://{{fqdn}}/v1/register/participant/
 Content-Type: application/json
 
 {
@@ -30,7 +30,7 @@ Content-Type: application/json
 }
 
 ###
-POST https://staging.fragevents.com/v1/register/participant/
+POST https://{{fqdn}}/v1/register/participant/
 Content-Type: application/json
 
 {
@@ -38,7 +38,7 @@ Content-Type: application/json
 }
 
 ###
-POST https://staging.fragevents.com/v1/register/participant/
+POST https://{{fqdn}}/v1/register/participant/
 Content-Type: application/json
 
 {

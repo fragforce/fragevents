@@ -1,1 +1,9 @@
-GET https://fragevents-stage.herokuapp.com/team/{{team-id}}/
+GET https://{{fqdn}}/team/{{team-id-1}}/
+
+###
+GET https://{{fqdn}}/team/{{team-id-2}}/
+
+###
+GET https://{{fqdn}}/team/{{team-id-0}}/
+
+###
