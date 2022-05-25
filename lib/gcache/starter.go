@@ -284,7 +284,8 @@ func (c *SharedGCache) StartRunPrep() error {
 
 	log.Info("Setting up GIN")
 	ginEngine := gin.Default()
-	ginEngine.Handlers = append(ginEngine.Handlers, c.GroupCacheHandler)
+
+	ginEngine.Group("/_groupcache/**", c.GroupCacheHandler)
 
 	if !viper.GetBool("debug") {
 		gin.SetMode(gin.ReleaseMode)
