@@ -3,12 +3,10 @@ package utils
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"github.com/spf13/viper"
 	"io/ioutil"
-	"net"
 	"net/http"
-	"strings"
+	"os"
 )
 
 type WanIP34 struct {
@@ -22,19 +20,21 @@ func init() {
 
 //GetLocalIP gets the first non-loopback interface IP
 func GetLocalIP() (string, error) { // https://stackoverflow.com/questions/23558425/how-do-i-get-the-local-ip-address-in-go
-	addrs, err := net.InterfaceAddrs()
-	if err != nil {
-		return "", err
-	}
-	for _, address := range addrs {
-		// check the address type and if it is not a loopback the display it
-		if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() && !strings.HasPrefix(address.String(), "172.17.") {
-			if ipnet.IP.To4() != nil {
-				return ipnet.IP.String(), nil
-			}
-		}
-	}
-	return "", errors.New("no IPs found")
+	//addrs, err := net.InterfaceAddrs()
+	//if err != nil {
+	//	return "", err
+	//}
+	//for _, address := range addrs {
+	//	// check the address type and if it is not a loopback the display it
+	//	if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() && !strings.HasPrefix(address.String(), "172.17.") {
+	//		if ipnet.IP.To4() != nil {
+	//			return ipnet.IP.String(), nil
+	//		}
+	//	}
+	//}
+	//return "", errors.New("no IPs found")
+	// FIXME: Error Checking!
+	return os.Getenv("HEROKU_PRIVATE_IP"), nil
 }
 
 //GetExternalIP uses an external website to fetch our WAN IP
