@@ -10,6 +10,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"net/http"
+	"sort"
 	"strings"
 	"time"
 )
@@ -93,6 +94,10 @@ func (c *SharedGCache) createPool() error {
 			}
 		},
 	})
+
+	// Keep in same order
+	sort.Strings(peers)
+
 	pool.Set(peers...)
 
 	// Critical portion
