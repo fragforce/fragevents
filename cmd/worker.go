@@ -18,7 +18,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import (
-	"fmt"
 	"github.com/fragforce/fragevents/lib/df"
 	"github.com/fragforce/fragevents/lib/tasks"
 	"github.com/hibiken/asynq"
@@ -38,12 +37,6 @@ var workerCmd = &cobra.Command{
 				Concurrency: viper.GetInt("asynq.workers"),
 			},
 		)
-
-		go func() {
-			if err := ginEngine.Run(fmt.Sprintf("%s:%d", viper.GetString("listen"), viper.GetInt("port")+1)); err != nil {
-				log.WithError(err).Fatal("Problem running GIN")
-			}
-		}()
 
 		if err := srv.Run(tasks.GetMux()); err != nil {
 			log.WithError(err).Fatal("Problem running asynq worker daemon")

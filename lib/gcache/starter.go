@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/fragforce/fragevents/lib/handler_global"
 	"github.com/fragforce/fragevents/lib/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/mailgun/groupcache/v2"
@@ -278,17 +279,32 @@ func (c *SharedGCache) Shutdown() error {
 }
 
 //StartRunPrep handles the startup prep
-func (c *SharedGCache) StartRunPrep(r *gin.Engine) error {
+func (c *SharedGCache) StartRunPrep() error {
 	log := c.log
 
-	// Add handlers
-	r.Group("/_groupcache/", c.GroupCacheHandler)
+	log.Info("Setting up GIN")
+	ginEngine := gin.Default()
+	ginEngine.Handlers = append(ginEngine.Handlers, c.GroupCacheHandler)
+
+	if !viper.GetBool("debug") {
+		gin.SetMode(gin.ReleaseMode)
+	} else {
+		gin.SetMode(gin.DebugMode)
+	}
+
+	handler_global.RegisterGlobalHandlers(ginEngine)
 
 	// Add ourselves to the global list of groupcache URLs
 	if err := c.addMyPeer(); err != nil {
 		log.WithError(err).Error("Problem adding myself to peer list")
 		return err
 	}
+
+	go func() {
+		if err := ginEngine.Run(fmt.Sprintf("%s:%d", viper.GetString("listen"), viper.GetInt("port")+1)); err != nil {
+			log.WithError(err).Fatal("Problem running GIN")
+		}
+	}()
 
 	return nil
 }

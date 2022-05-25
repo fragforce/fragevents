@@ -18,12 +18,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import (
-	"fmt"
 	"github.com/fragforce/fragevents/lib/df"
 	"github.com/fragforce/fragevents/lib/tasks"
 	"github.com/hibiken/asynq"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"time"
 )
 
@@ -46,12 +44,6 @@ var schedCmd = &cobra.Command{
 
 		// Register cron tasks
 		tasks.RegisterSched(scheduler)
-
-		go func() {
-			if err := ginEngine.Run(fmt.Sprintf("%s:%d", viper.GetString("listen"), viper.GetInt("port")+1)); err != nil {
-				log.WithError(err).Fatal("Problem running GIN")
-			}
-		}()
 
 		if err := scheduler.Run(); err != nil {
 			log.WithError(err).Fatal("Problem running asynq scheduler daemon")

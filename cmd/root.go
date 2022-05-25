@@ -21,9 +21,7 @@ import (
 	"fmt"
 	"github.com/fragforce/fragevents/lib/df"
 	"github.com/fragforce/fragevents/lib/gcache"
-	"github.com/fragforce/fragevents/lib/handler_global"
 	"github.com/fragforce/fragevents/lib/kdb"
-	"github.com/gin-gonic/gin"
 	"github.com/mitchellh/go-homedir"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -37,7 +35,6 @@ var cfgFile string
 var rootLog *logrus.Logger
 var log *logrus.Entry
 var AmDebugging bool
-var ginEngine *gin.Engine
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -54,17 +51,6 @@ var rootCmd = &cobra.Command{
 			log.WithError(err).Fatal("Problem setting up redis clients")
 			return
 		}
-
-		log.Info("Setting up GIN")
-		ginEngine = gin.Default()
-
-		if !AmDebugging {
-			gin.SetMode(gin.ReleaseMode)
-		} else {
-			gin.SetMode(gin.DebugMode)
-		}
-
-		handler_global.RegisterGlobalHandlers(ginEngine)
 
 		log.Info("Setting up gcache's redis client")
 		gcRdb, err := df.GetGlobal().GetCreatePool(df.RPoolGroupCache).GetClient(true)
@@ -83,7 +69,7 @@ var rootCmd = &cobra.Command{
 			return
 		}
 		log.Info("Start/Run Prep GCA")
-		if err := gca.StartRunPrep(ginEngine); err != nil {
+		if err := gca.StartRunPrep(); err != nil {
 			log.WithError(err).Fatal("Problem starting up global shared groupcache")
 			return
 		}
