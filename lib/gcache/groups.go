@@ -74,16 +74,16 @@ func registerGroupF(groupName string, defaultCacheSizeMB int64, groupGetterF Gro
 					log.WithError(err).Error("Problem running getter")
 					return err
 				}
-				grp := groupcache.GetGroup(groupName)
-				t := time.Now().Add(time.Minute * 15)
+				//grp := groupcache.GetGroup(groupName)
+				t := time.Now().Add(time.Minute * 30)
 				//if err := grp.Set(ctx, key, res, t, true); err != nil {
 				//	log.WithError(err).Error("Problem updating cache")
 				//	return err
 				//}
-				if err := grp.Set(ctx, key, res, t, false); err != nil {
-					log.WithError(err).Error("Problem updating cache")
-					return err
-				}
+				//if err := grp.Set(ctx, key, res, t, false); err != nil {
+				//	log.WithError(err).Error("Problem updating cache")
+				//	return err
+				//}
 				if err := dest.SetBytes(res, t); err != nil {
 					log.WithError(err).Error("Problem returning data")
 					return err
