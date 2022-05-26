@@ -9,7 +9,7 @@ require (
 	github.com/gin-gonic/gin v1.7.7
 	github.com/go-redis/redis/v8 v8.11.2
 	github.com/hibiken/asynq v0.23.0
-	github.com/mailgun/groupcache/v2 v2.3.1
+	github.com/mailgun/groupcache/v2 v2.3.2
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/ptdave20/donordrive v0.0.0
 	github.com/segmentio/kafka-go v0.4.31
